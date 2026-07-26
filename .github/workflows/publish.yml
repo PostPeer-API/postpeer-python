@@ -1,0 +1,33 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/postpeer/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.26"
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --frozen --extra dev
+      - run: uv build
+      - run: uv run twine check dist/*
+      - name: Verify tag matches package version
+        run: |
+          PACKAGE_VERSION=$(uv run python -c "from postpeer import __version__; print(__version__)")
+          test "v${PACKAGE_VERSION}" = "${{ github.event.release.tag_name }}"
+      - uses: pypa/gh-action-pypi-publish@release/v1

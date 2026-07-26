@@ -1,0 +1,17 @@
+{
+  "name": "postpeer-python-codegen",
+  "private": true,
+  "packageManager": "pnpm@10.30.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "spec:fetch": "node scripts/fetch-spec.mjs",
+    "generate:models": "openapi-python",
+    "generate:resources": "uv run python scripts/generate_resources.py",
+    "generate": "pnpm generate:models && pnpm generate:resources"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-python": "0.0.24"
+  }
+}

@@ -1,0 +1,95 @@
+[project]
+name = "postpeer"
+version = "0.1.0"
+description = "The official Python SDK for the PostPeer API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "PostPeer" }]
+keywords = ["postpeer", "social-media", "api", "sdk"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+dependencies = [
+  "httpx>=0.27,<1",
+  "pydantic[email]>=2,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "hatchling>=1.27",
+  "mypy>=1.13",
+  "pytest>=8",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6",
+  "respx>=0.22",
+  "ruff>=0.9",
+  "twine>=6",
+]
+
+[project.urls]
+Homepage = "https://postpeer.dev"
+Documentation = "https://docs.postpeer.dev"
+Repository = "https://github.com/PostPeer-API/postpeer-python"
+Issues = "https://github.com/PostPeer-API/postpeer-python/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/postpeer"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=postpeer --cov-report=term-missing --strict-markers"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["postpeer"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "if TYPE_CHECKING:",
+  "pragma: no cover",
+  "raise NotImplementedError",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/postpeer/_generated/*" = ["E501", "UP"]
+"src/postpeer/resources/_generated.py" = ["E501"]
+
+[tool.ruff.format]
+exclude = ["src/postpeer/_generated/*", "src/postpeer/resources/_generated.py"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+plugins = ["pydantic.mypy"]
+packages = ["postpeer"]
+
+[[tool.mypy.overrides]]
+module = ["postpeer._generated.*", "postpeer.resources._generated"]
+ignore_errors = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
