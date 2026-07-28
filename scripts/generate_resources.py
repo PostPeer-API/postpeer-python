@@ -50,6 +50,7 @@ OPERATION_PATHS: dict[str, tuple[str, ...]] = {
     "getPost": ("posts", "get"),
     "deletePost": ("posts", "delete"),
     "listScheduledPosts": ("posts", "scheduled", "list"),
+    "editScheduledPost": ("posts", "scheduled", "edit"),
     "cancelScheduledPost": ("posts", "scheduled", "cancel"),
     "reschedulePost": ("posts", "scheduled", "reschedule"),
     "createMediaUpload": ("media", "upload"),

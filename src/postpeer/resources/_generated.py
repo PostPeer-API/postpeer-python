@@ -668,6 +668,36 @@ class SyncPostsScheduledResource(_SyncResource):
             options=_request_options,
         )
 
+    def edit(
+        self,
+        post_id: str,
+        content: str,
+        platforms: Sequence[models.EditScheduledPostPlatforms | Mapping[str, Any] | models.EditScheduledPostPlatforms_ | Mapping[str, Any] | models.EditScheduledPostPlatforms_2 | Mapping[str, Any] | models.EditScheduledPostPlatforms_3 | Mapping[str, Any] | models.EditScheduledPostPlatforms_4 | Mapping[str, Any] | models.EditScheduledPostPlatforms_5 | Mapping[str, Any] | models.EditScheduledPostPlatforms_6 | Mapping[str, Any] | models.EditScheduledPostPlatforms_7 | Mapping[str, Any] | models.EditScheduledPostPlatforms_8 | Mapping[str, Any] | models.EditScheduledPostPlatforms_9 | Mapping[str, Any]],
+        *,
+        media_items: Sequence[models.EditScheduledPostMediaItems | Mapping[str, Any]] | None = None,
+        scheduled_for: str | None = None,
+        timezone: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.EditScheduledPostResponse:
+        """Edit a scheduled post (content, media, platforms, time)"""
+        path_values = models.EditScheduledPostPath.model_validate(
+            {'postId': post_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/posts/scheduled/{postId}'
+        path = path.replace('{postId}', quote(str(path_values['postId']), safe=''))
+        query = None
+        body = models.EditScheduledPostBody.model_validate(
+            {'content': content, 'mediaItems': media_items, 'platforms': platforms, 'scheduledFor': scheduled_for, 'timezone': timezone}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return self._transport.request(
+            'PUT',
+            path,
+            response_model=models.EditScheduledPostResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
     def list(
         self,
         *,
@@ -1704,6 +1734,36 @@ class AsyncPostsScheduledResource(_AsyncResource):
             'DELETE',
             path,
             response_model=models.CancelScheduledPostResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def edit(
+        self,
+        post_id: str,
+        content: str,
+        platforms: Sequence[models.EditScheduledPostPlatforms | Mapping[str, Any] | models.EditScheduledPostPlatforms_ | Mapping[str, Any] | models.EditScheduledPostPlatforms_2 | Mapping[str, Any] | models.EditScheduledPostPlatforms_3 | Mapping[str, Any] | models.EditScheduledPostPlatforms_4 | Mapping[str, Any] | models.EditScheduledPostPlatforms_5 | Mapping[str, Any] | models.EditScheduledPostPlatforms_6 | Mapping[str, Any] | models.EditScheduledPostPlatforms_7 | Mapping[str, Any] | models.EditScheduledPostPlatforms_8 | Mapping[str, Any] | models.EditScheduledPostPlatforms_9 | Mapping[str, Any]],
+        *,
+        media_items: Sequence[models.EditScheduledPostMediaItems | Mapping[str, Any]] | None = None,
+        scheduled_for: str | None = None,
+        timezone: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.EditScheduledPostResponse:
+        """Edit a scheduled post (content, media, platforms, time)"""
+        path_values = models.EditScheduledPostPath.model_validate(
+            {'postId': post_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/posts/scheduled/{postId}'
+        path = path.replace('{postId}', quote(str(path_values['postId']), safe=''))
+        query = None
+        body = models.EditScheduledPostBody.model_validate(
+            {'content': content, 'mediaItems': media_items, 'platforms': platforms, 'scheduledFor': scheduled_for, 'timezone': timezone}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return await self._transport.request(
+            'PUT',
+            path,
+            response_model=models.EditScheduledPostResponse,
             query=query,
             body=body,
             options=_request_options,

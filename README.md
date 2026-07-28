@@ -97,6 +97,11 @@ client.posts.list(status="scheduled")
 client.posts.get(post_id="...")
 client.posts.delete(post_id="...")
 client.posts.scheduled.list()
+client.posts.scheduled.edit(
+    post_id="...",
+    content="Updated content",
+    platforms=[...],
+)
 client.posts.scheduled.cancel(post_id="...")
 
 client.media.upload(filename="image.png", mime_type="image/png")

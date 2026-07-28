@@ -325,6 +325,31 @@
             ],
             "description": "Post visibility. \"PUBLIC\" = visible to everyone, \"CONNECTIONS\" = visible to connections only. Defaults to \"PUBLIC\"."
           },
+          "mentions": {
+            "maxItems": 30,
+            "description": "Tag company pages in the post text. Each entry maps an exact substring of `content` to the organization URN to mention; LinkedIn renders it as a clickable @mention. Only company pages can be mentioned, not personal profiles.",
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "text",
+                "urn"
+              ],
+              "properties": {
+                "text": {
+                  "minLength": 1,
+                  "description": "Exact substring within the post content to turn into a clickable mention (e.g. \"Acme Corp\"). Case-sensitive, must appear exactly once in content.",
+                  "type": "string"
+                },
+                "urn": {
+                  "pattern": "^urn:li:organization:.+$",
+                  "description": "LinkedIn URN of the company page to mention, e.g. \"urn:li:organization:12345\". LinkedIn's API only supports mentioning organization/company pages, not personal profiles.",
+                  "type": "string"
+                }
+              }
+            }
+          },
           "articleUrl": {
             "format": "uri",
             "description": "URL for an article/link post. When provided, the post becomes a link share with a preview card.",
@@ -343,6 +368,26 @@
           "documentTitle": {
             "maxLength": 200,
             "description": "Title shown on the document card when posting a PDF. Required by LinkedIn when a document media item is included.",
+            "type": "string"
+          }
+        }
+      },
+      "LinkedInMention": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "urn"
+        ],
+        "properties": {
+          "text": {
+            "minLength": 1,
+            "description": "Exact substring within the post content to turn into a clickable mention (e.g. \"Acme Corp\"). Case-sensitive, must appear exactly once in content.",
+            "type": "string"
+          },
+          "urn": {
+            "pattern": "^urn:li:organization:.+$",
+            "description": "LinkedIn URN of the company page to mention, e.g. \"urn:li:organization:12345\". LinkedIn's API only supports mentioning organization/company pages, not personal profiles.",
             "type": "string"
           }
         }
@@ -391,9 +436,16 @@
       },
       "InstagramConfigurations": {
         "additionalProperties": false,
-        "description": "Pass this object in platformSpecificData when posting to Instagram Business accounts. All fields are optional and apply to Reels/video posts; image posts ignore them.",
+        "description": "Pass this object in platformSpecificData when posting to Instagram. Use contentType to publish Stories; the remaining fields customize Reels.",
         "type": "object",
         "properties": {
+          "contentType": {
+            "description": "Set to \"story\" to publish an Instagram Story. Omit for the existing behavior: images publish to Feed and videos publish as Reels.",
+            "type": "string",
+            "enum": [
+              "story"
+            ]
+          },
           "shareToFeed": {
             "description": "Reels-only. When true (default), the Reel also appears in the account's main feed grid. Set false to publish to Reels only.",
             "type": "boolean"
@@ -5867,6 +5919,535 @@
                       "type": "string"
                     },
                     "scheduledFor": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "editScheduledPost",
+        "summary": "Edit a scheduled post (content, media, platforms, time)",
+        "tags": [
+          "Schedule"
+        ],
+        "description": "Replaces the editable fields of a scheduled post: text content, media attachments, target platforms + platform-specific data, and optionally the scheduled time/timezone. Re-validates each platform and reconciles the credit difference. Only works while the post is still scheduled.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "content",
+                  "platforms"
+                ],
+                "properties": {
+                  "content": {
+                    "description": "New post text body",
+                    "type": "string"
+                  },
+                  "mediaItems": {
+                    "description": "Replacement media attachments (images, videos, GIFs)",
+                    "type": "array",
+                    "items": {
+                      "additionalProperties": false,
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "image",
+                            "video",
+                            "gif",
+                            "document"
+                          ]
+                        },
+                        "url": {
+                          "format": "uri",
+                          "type": "string"
+                        },
+                        "thumbnail": {
+                          "format": "uri",
+                          "description": "Thumbnail image URL for video items. Supported on YouTube regular videos (not Shorts). JPEG, PNG, or GIF, max 2 MB, min 640 px wide.",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "platforms": {
+                    "minItems": 1,
+                    "description": "Replacement target platform accounts to publish to",
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "twitter"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/TwitterConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "instagram"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/InstagramConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "youtube"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/YouTubeConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "tiktok"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/TikTokConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "pinterest"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/PinterestConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "linkedin"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/LinkedInConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "bluesky"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/BlueskyConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "facebook"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/FacebookConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "threads"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/ThreadsConfigurations"
+                            }
+                          }
+                        },
+                        {
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "platform",
+                            "accountId"
+                          ],
+                          "properties": {
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "googlebusiness"
+                              ]
+                            },
+                            "accountId": {
+                              "description": "Integration._id — find yours via GET /connect/integrations",
+                              "type": "string"
+                            },
+                            "content": {
+                              "description": "Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.",
+                              "type": "string"
+                            },
+                            "platformSpecificData": {
+                              "$ref": "#/components/schemas/GoogleBusinessConfigurations"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "scheduledFor": {
+                    "format": "date-time",
+                    "description": "New ISO 8601 datetime. Omit to keep the current scheduled time.",
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "description": "IANA timezone for the scheduled time. Omit to keep the current one.",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "postId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "accessKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "postId",
+                    "scheduledFor"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "postId": {
+                      "type": "string"
+                    },
+                    "scheduledFor": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
                       "type": "string"
                     }
                   }

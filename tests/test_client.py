@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -67,7 +68,7 @@ def test_reads_api_key_from_environment_and_returns_model(
     assert isinstance(response, HealthCheckResponse)
     assert response.ok is True
     assert requests[0].headers["x-access-key"] == "env-key"
-    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.0"
+    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.1"
     assert requests[0].url == "https://api.postpeer.dev/v1/health"
     client.close()
     assert not raw.is_closed
@@ -100,6 +101,7 @@ def test_resource_structure_and_sync_async_parity() -> None:
     pairs = [
         (sync.health.check, asynchronous.health.check),
         (sync.posts.create, asynchronous.posts.create),
+        (sync.posts.scheduled.edit, asynchronous.posts.scheduled.edit),
         (sync.posts.scheduled.reschedule, asynchronous.posts.scheduled.reschedule),
         (sync.connect.linkedin.get_selection, asynchronous.connect.linkedin.get_selection),
         (sync.connect.integrations.list, asynchronous.connect.integrations.list),
@@ -165,6 +167,49 @@ def test_path_encoding_query_arrays_and_none_omission() -> None:
         client.posts.list(platform=["twitter", "linkedin"], profile_id=None)
     assert requests[1].url.params.get_list("platform") == ["twitter", "linkedin"]
     assert "profileId" not in requests[1].url.params
+
+
+def test_edit_scheduled_post_with_instagram_story_config() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return json_response(
+            request,
+            {
+                "success": True,
+                "message": "Scheduled post updated",
+                "postId": "post/123",
+                "scheduledFor": "2026-08-01T09:00:00Z",
+            },
+        )
+
+    client = sync_client(handler)
+    response = client.posts.scheduled.edit(
+        post_id="post/123",
+        content="An Instagram Story",
+        platforms=[
+            {
+                "platform": "instagram",
+                "accountId": "instagram_123",
+                "platformSpecificData": {"contentType": "story"},
+            }
+        ],
+    )
+
+    assert response.post_id == "post/123"
+    assert requests[0].method == "PUT"
+    assert requests[0].url.raw_path.endswith(b"/posts/scheduled/post%2F123")
+    assert json.loads(requests[0].read()) == {
+        "content": "An Instagram Story",
+        "platforms": [
+            {
+                "platform": "instagram",
+                "accountId": "instagram_123",
+                "platformSpecificData": {"contentType": "story"},
+            }
+        ],
+    }
 
 
 def test_typed_api_error_preserves_context() -> None:

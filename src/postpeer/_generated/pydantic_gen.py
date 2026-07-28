@@ -154,15 +154,28 @@ class LinkedInConfigurationsVisibility(str, Enum):
     CONNECTIONS = "CONNECTIONS"
 
 
+class LinkedInConfigurationsMentions(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: Annotated[str, Field(min_length=1)] = Field(..., description='Exact substring within the post content to turn into a clickable mention (e.g. "Acme Corp"). Case-sensitive, must appear exactly once in content.')
+    urn: Annotated[str, Field(pattern=r"^urn:li:organization:.+$")] = Field(..., description="LinkedIn URN of the company page to mention, e.g. \"urn:li:organization:12345\". LinkedIn's API only supports mentioning organization/company pages, not personal profiles.")
+
+
 class LinkedInConfigurations(BaseModel):
     """Pass this object in platformSpecificData when posting to LinkedIn."""
 
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
     visibility: Optional[LinkedInConfigurationsVisibility] = Field(default=None, description='Post visibility. "PUBLIC" = visible to everyone, "CONNECTIONS" = visible to connections only. Defaults to "PUBLIC".')
+    mentions: Optional[Annotated[list[LinkedInConfigurationsMentions], Field(max_length=30)]] = Field(default=None, description="Tag company pages in the post text. Each entry maps an exact substring of `content` to the organization URN to mention; LinkedIn renders it as a clickable @mention. Only company pages can be mentioned, not personal profiles.")
     article_url: Optional[AnyUrl] = Field(default=None, alias="articleUrl", description="URL for an article/link post. When provided, the post becomes a link share with a preview card.")
     article_title: Optional[Annotated[str, Field(max_length=400)]] = Field(default=None, alias="articleTitle", description="Title for the article preview card. Max 400 characters.")
     article_description: Optional[Annotated[str, Field(max_length=400)]] = Field(default=None, alias="articleDescription", description="Description for the article preview card. Max 400 characters.")
     document_title: Optional[Annotated[str, Field(max_length=200)]] = Field(default=None, alias="documentTitle", description="Title shown on the document card when posting a PDF. Required by LinkedIn when a document media item is included.")
+
+
+class LinkedInMention(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: Annotated[str, Field(min_length=1)] = Field(..., description='Exact substring within the post content to turn into a clickable mention (e.g. "Acme Corp"). Case-sensitive, must appear exactly once in content.')
+    urn: Annotated[str, Field(pattern=r"^urn:li:organization:.+$")] = Field(..., description="LinkedIn URN of the company page to mention, e.g. \"urn:li:organization:12345\". LinkedIn's API only supports mentioning organization/company pages, not personal profiles.")
 
 
 class BlueskyConfigurations(BaseModel):
@@ -182,10 +195,17 @@ class FacebookConfigurations(BaseModel):
     video_thumbnail_url: Optional[AnyUrl] = Field(default=None, alias="videoThumbnailUrl", description="Video posts only. Public URL of an image Facebook will use as the video's cover/thumbnail. Applied as a follow-up call after publish — if the upload fails, the post still succeeds (Facebook just auto-picks a frame). Ignored when no video is attached.")
 
 
+class InstagramConfigurationsContentType(str, Enum):
+    """Set to "story" to publish an Instagram Story. Omit for the existing behavior: images publish to Feed and videos publish as Reels."""
+
+    STORY = "story"
+
+
 class InstagramConfigurations(BaseModel):
-    """Pass this object in platformSpecificData when posting to Instagram Business accounts. All fields are optional and apply to Reels/video posts; image posts ignore them."""
+    """Pass this object in platformSpecificData when posting to Instagram. Use contentType to publish Stories; the remaining fields customize Reels."""
 
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    content_type: Optional[InstagramConfigurationsContentType] = Field(default=None, alias="contentType", description='Set to "story" to publish an Instagram Story. Omit for the existing behavior: images publish to Feed and videos publish as Reels.')
     share_to_feed: Optional[bool] = Field(default=None, alias="shareToFeed", description="Reels-only. When true (default), the Reel also appears in the account's main feed grid. Set false to publish to Reels only.")
     cover_url: Optional[AnyUrl] = Field(default=None, alias="coverUrl", description="Video-only. Public URL of an image Instagram will use as the cover frame for the Reel/video post. Ignored for image posts.")
     thumb_offset: Optional[Annotated[int, Field(ge=0)]] = Field(default=None, alias="thumbOffset", description="Video-only. Timestamp in milliseconds Instagram extracts as the cover frame. Ignored when coverUrl is set or for image posts.")
@@ -1735,6 +1755,162 @@ class ReschedulePostResponse(BaseModel):
     success: bool
     message: str
     scheduled_for: str = Field(..., alias="scheduledFor")
+
+
+class EditScheduledPostMediaItemsType(str, Enum):
+    IMAGE = "image"
+    VIDEO = "video"
+    GIF = "gif"
+    DOCUMENT = "document"
+
+
+class EditScheduledPostMediaItems(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: EditScheduledPostMediaItemsType
+    url: AnyUrl
+    thumbnail: Optional[AnyUrl] = Field(default=None, description="Thumbnail image URL for video items. Supported on YouTube regular videos (not Shorts). JPEG, PNG, or GIF, max 2 MB, min 640 px wide.")
+
+
+class EditScheduledPostPlatformsPlatform(str, Enum):
+    TWITTER = "twitter"
+
+
+class EditScheduledPostPlatforms(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[TwitterConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_(str, Enum):
+    INSTAGRAM = "instagram"
+
+
+class EditScheduledPostPlatforms_(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[InstagramConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_2(str, Enum):
+    YOUTUBE = "youtube"
+
+
+class EditScheduledPostPlatforms_2(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_2
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[YouTubeConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_3(str, Enum):
+    TIKTOK = "tiktok"
+
+
+class EditScheduledPostPlatforms_3(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_3
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[TikTokConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_4(str, Enum):
+    PINTEREST = "pinterest"
+
+
+class EditScheduledPostPlatforms_4(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_4
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[PinterestConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_5(str, Enum):
+    LINKEDIN = "linkedin"
+
+
+class EditScheduledPostPlatforms_5(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_5
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[LinkedInConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_6(str, Enum):
+    BLUESKY = "bluesky"
+
+
+class EditScheduledPostPlatforms_6(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_6
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[BlueskyConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_7(str, Enum):
+    FACEBOOK = "facebook"
+
+
+class EditScheduledPostPlatforms_7(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_7
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[FacebookConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_8(str, Enum):
+    THREADS = "threads"
+
+
+class EditScheduledPostPlatforms_8(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_8
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[ThreadsConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostPlatformsPlatform_9(str, Enum):
+    GOOGLEBUSINESS = "googlebusiness"
+
+
+class EditScheduledPostPlatforms_9(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: EditScheduledPostPlatformsPlatform_9
+    account_id: str = Field(..., alias="accountId", description="Integration._id — find yours via GET /connect/integrations")
+    content: Optional[str] = Field(default=None, description="Optional per-platform text override. Use when you want to change the text for this platform because different platforms talk differently. When omitted, the top-level `content` is used.")
+    platform_specific_data: Optional[GoogleBusinessConfigurations] = Field(default=None, alias="platformSpecificData")
+
+
+class EditScheduledPostBody(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    content: str = Field(..., description="New post text body")
+    media_items: Optional[list[EditScheduledPostMediaItems]] = Field(default=None, alias="mediaItems", description="Replacement media attachments (images, videos, GIFs)")
+    platforms: Annotated[list[Union[EditScheduledPostPlatforms, EditScheduledPostPlatforms_, EditScheduledPostPlatforms_2, EditScheduledPostPlatforms_3, EditScheduledPostPlatforms_4, EditScheduledPostPlatforms_5, EditScheduledPostPlatforms_6, EditScheduledPostPlatforms_7, EditScheduledPostPlatforms_8, EditScheduledPostPlatforms_9]], Field(min_length=1)] = Field(..., description="Replacement target platform accounts to publish to")
+    scheduled_for: Optional[datetime] = Field(default=None, alias="scheduledFor", description="New ISO 8601 datetime. Omit to keep the current scheduled time.")
+    timezone: Optional[str] = Field(default=None, description="IANA timezone for the scheduled time. Omit to keep the current one.")
+
+
+class EditScheduledPostPath(BaseModel):
+    post_id: str = Field(..., alias="postId")
+
+
+class EditScheduledPostResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    message: str
+    post_id: str = Field(..., alias="postId")
+    scheduled_for: datetime = Field(..., alias="scheduledFor")
 
 
 class CreateMediaUploadBody(BaseModel):
