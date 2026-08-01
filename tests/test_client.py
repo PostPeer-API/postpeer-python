@@ -68,7 +68,7 @@ def test_reads_api_key_from_environment_and_returns_model(
     assert isinstance(response, HealthCheckResponse)
     assert response.ok is True
     assert requests[0].headers["x-access-key"] == "env-key"
-    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.1"
+    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.2"
     assert requests[0].url == "https://api.postpeer.dev/v1/health"
     client.close()
     assert not raw.is_closed
@@ -103,7 +103,9 @@ def test_resource_structure_and_sync_async_parity() -> None:
         (sync.posts.create, asynchronous.posts.create),
         (sync.posts.scheduled.edit, asynchronous.posts.scheduled.edit),
         (sync.posts.scheduled.reschedule, asynchronous.posts.scheduled.reschedule),
+        (sync.connect.facebook.get_selection, asynchronous.connect.facebook.get_selection),
         (sync.connect.linkedin.get_selection, asynchronous.connect.linkedin.get_selection),
+        (sync.connect.integrations.get, asynchronous.connect.integrations.get),
         (sync.connect.integrations.list, asynchronous.connect.integrations.list),
         (sync.ai.generate_image, asynchronous.ai.generate_image),
     ]
@@ -134,7 +136,13 @@ def test_pythonic_arguments_are_serialized_to_wire_names() -> None:
     client = sync_client(handler)
     response = client.posts.create(
         content="Hello",
-        platforms=[{"platform": "twitter", "accountId": "integration_123"}],
+        platforms=[
+            {
+                "platform": "twitter",
+                "accountId": "integration_123",
+                "platformSpecificData": {"longPost": True},
+            }
+        ],
         media_items=None,
         publish_now=True,
     )
@@ -144,7 +152,8 @@ def test_pythonic_arguments_are_serialized_to_wire_names() -> None:
     assert requests[0].method == "POST"
     assert requests[0].read() == (
         b'{"content":"Hello","platforms":[{"platform":"twitter",'
-        b'"accountId":"integration_123"}],"publishNow":true}'
+        b'"accountId":"integration_123","platformSpecificData":'
+        b'{"longPost":true}}],"publishNow":true}'
     )
 
 

@@ -111,6 +111,57 @@ class SyncConnectLinkedinResource(_SyncResource):
         )
 
 
+class SyncConnectFacebookResource(_SyncResource):
+    def get_selection(
+        self,
+        token: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetFacebookSelectionResponse:
+        """Get pending Facebook Page choices"""
+        path_values = models.GetFacebookSelectionPath.model_validate(
+            {'token': token}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/facebook/selection/{token}'
+        path = path.replace('{token}', quote(str(path_values['token']), safe=''))
+        query = None
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetFacebookSelectionResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def submit_selection(
+        self,
+        token: str,
+        selected_account_ids: Sequence[str],
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.SubmitFacebookSelectionResponse:
+        """Save selected Facebook Pages"""
+        path_values = models.SubmitFacebookSelectionPath.model_validate(
+            {'token': token}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/facebook/selection/{token}'
+        path = path.replace('{token}', quote(str(path_values['token']), safe=''))
+        query = None
+        body = models.SubmitFacebookSelectionBody.model_validate(
+            {'selectedAccountIds': selected_account_ids}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return self._transport.request(
+            'POST',
+            path,
+            response_model=models.SubmitFacebookSelectionResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
 class SyncConnectIntegrationsResource(_SyncResource):
     def disconnect(
         self,
@@ -130,6 +181,29 @@ class SyncConnectIntegrationsResource(_SyncResource):
             'DELETE',
             path,
             response_model=models.DisconnectIntegrationResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def get(
+        self,
+        id: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetIntegrationResponse:
+        """Get integration details"""
+        path_values = models.GetIntegrationPath.model_validate(
+            {'id': id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/integrations/{id}'
+        path = path.replace('{id}', quote(str(path_values['id']), safe=''))
+        query = None
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetIntegrationResponse,
             query=query,
             body=body,
             options=_request_options,
@@ -221,6 +295,10 @@ class SyncConnectResource(_SyncResource):
             body=body,
             options=_request_options,
         )
+
+    @cached_property
+    def facebook(self) -> SyncConnectFacebookResource:
+        return SyncConnectFacebookResource(self._transport)
 
     @cached_property
     def integrations(self) -> SyncConnectIntegrationsResource:
@@ -1182,6 +1260,57 @@ class AsyncConnectLinkedinResource(_AsyncResource):
         )
 
 
+class AsyncConnectFacebookResource(_AsyncResource):
+    async def get_selection(
+        self,
+        token: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetFacebookSelectionResponse:
+        """Get pending Facebook Page choices"""
+        path_values = models.GetFacebookSelectionPath.model_validate(
+            {'token': token}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/facebook/selection/{token}'
+        path = path.replace('{token}', quote(str(path_values['token']), safe=''))
+        query = None
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetFacebookSelectionResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def submit_selection(
+        self,
+        token: str,
+        selected_account_ids: Sequence[str],
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.SubmitFacebookSelectionResponse:
+        """Save selected Facebook Pages"""
+        path_values = models.SubmitFacebookSelectionPath.model_validate(
+            {'token': token}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/facebook/selection/{token}'
+        path = path.replace('{token}', quote(str(path_values['token']), safe=''))
+        query = None
+        body = models.SubmitFacebookSelectionBody.model_validate(
+            {'selectedAccountIds': selected_account_ids}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return await self._transport.request(
+            'POST',
+            path,
+            response_model=models.SubmitFacebookSelectionResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
 class AsyncConnectIntegrationsResource(_AsyncResource):
     async def disconnect(
         self,
@@ -1201,6 +1330,29 @@ class AsyncConnectIntegrationsResource(_AsyncResource):
             'DELETE',
             path,
             response_model=models.DisconnectIntegrationResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def get(
+        self,
+        id: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetIntegrationResponse:
+        """Get integration details"""
+        path_values = models.GetIntegrationPath.model_validate(
+            {'id': id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/integrations/{id}'
+        path = path.replace('{id}', quote(str(path_values['id']), safe=''))
+        query = None
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetIntegrationResponse,
             query=query,
             body=body,
             options=_request_options,
@@ -1292,6 +1444,10 @@ class AsyncConnectResource(_AsyncResource):
             body=body,
             options=_request_options,
         )
+
+    @cached_property
+    def facebook(self) -> AsyncConnectFacebookResource:
+        return AsyncConnectFacebookResource(self._transport)
 
     @cached_property
     def integrations(self) -> AsyncConnectIntegrationsResource:

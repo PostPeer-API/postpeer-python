@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2
+
+- Add Facebook Page selection methods under `connect.facebook`.
+- Add `connect.integrations.get(...)` for retrieving one integration.
+- Add Twitter long-post support with
+  `platformSpecificData={"longPost": true}`.
+
 ## 0.1.1
 
 - Add `posts.scheduled.edit(...)` to replace a scheduled post's content, media,

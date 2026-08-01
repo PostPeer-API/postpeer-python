@@ -137,6 +137,10 @@
               }
             }
           },
+          "longPost": {
+            "description": "Opt in to long posts (over 280 characters). Skips PostPeer's 280-character pre-check so X can accept up to 25,000 characters for eligible Premium / Premium+ accounts. If the connected account is not eligible, X rejects the post and the error is surfaced back. No extra API cost.",
+            "type": "boolean"
+          },
           "poll": {
             "additionalProperties": false,
             "description": "Cannot be combined with media or threadItems.",
@@ -601,6 +605,9 @@
             "description": "Target platform accounts to publish to",
             "type": "array",
             "items": {
+              "discriminator": {
+                "propertyName": "platform"
+              },
               "oneOf": [
                 {
                   "additionalProperties": false,
@@ -1299,6 +1306,339 @@
         }
       }
     },
+    "/v1/connect/facebook/selection/{token}": {
+      "get": {
+        "operationId": "getFacebookSelection",
+        "summary": "Get pending Facebook Page choices",
+        "tags": [
+          "Connect"
+        ],
+        "description": "Returns the Facebook Pages available after OAuth when the user must choose which Pages to connect. The selection token is short-lived and one-time.",
+        "parameters": [
+          {
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "in": "path",
+            "name": "token",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "platform",
+                    "expiresInSeconds",
+                    "accounts"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "facebook"
+                      ]
+                    },
+                    "expiresInSeconds": {
+                      "type": "number"
+                    },
+                    "accounts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "type",
+                          "platformUserId",
+                          "displayName",
+                          "username",
+                          "imageUrl"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "page"
+                            ]
+                          },
+                          "platformUserId": {
+                            "type": "string"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "username": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "imageUrl": {
+                            "type": "string",
+                            "format": "uri",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitFacebookSelection",
+        "summary": "Save selected Facebook Pages",
+        "tags": [
+          "Connect"
+        ],
+        "description": "Saves only the selected Facebook Pages as integrations, then invalidates the one-time selection token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "selectedAccountIds"
+                ],
+                "properties": {
+                  "selectedAccountIds": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "in": "path",
+            "name": "token",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "platform",
+                    "message",
+                    "integrations"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "facebook"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "redirectUri": {
+                      "type": "string"
+                    },
+                    "integrations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "platform",
+                          "platformUserId",
+                          "username",
+                          "displayName",
+                          "profileUrl",
+                          "imageUrl",
+                          "profileId",
+                          "appId",
+                          "app",
+                          "byok",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "description": "Use this as accountId when creating posts",
+                            "type": "string"
+                          },
+                          "platform": {
+                            "type": "string",
+                            "enum": [
+                              "twitter",
+                              "instagram",
+                              "youtube",
+                              "tiktok",
+                              "pinterest",
+                              "linkedin",
+                              "bluesky",
+                              "facebook",
+                              "threads",
+                              "googlebusiness"
+                            ]
+                          },
+                          "platformUserId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The user ID on the platform, or null if not yet retrieved"
+                          },
+                          "username": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The public username or handle, including @ for handle-based platforms"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Human-readable display name of the connected account"
+                          },
+                          "profileUrl": {
+                            "type": "string",
+                            "format": "uri",
+                            "nullable": true,
+                            "description": "Public profile/page URL for the connected account, when it can be derived"
+                          },
+                          "imageUrl": {
+                            "type": "string",
+                            "format": "uri",
+                            "nullable": true,
+                            "description": "Profile image URL for the connected account, or null if unavailable"
+                          },
+                          "platformMetadata": {
+                            "type": "object",
+                            "additionalProperties": true,
+                            "description": "Provider-specific public metadata for this connected account."
+                          },
+                          "profileId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                          },
+                          "appId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used."
+                          },
+                          "app": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "imageUrl": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "description": "The OAuth app metadata for BYOK integrations, or null when postpeer system app was used."
+                          },
+                          "byok": {
+                            "description": "True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.",
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/connect/{platform}": {
       "get": {
         "operationId": "getOAuthUrl",
@@ -1306,7 +1646,7 @@
         "tags": [
           "Connect"
         ],
-        "description": "Initiates an OAuth connection flow. By default, PostPeer hosts any required account selection UI and then returns the user to redirectUri. For LinkedIn custom account-selection UI, pass headless=true; if selection is required, the callback redirects to redirectUri with status=selection_required, platform=linkedin, and selectionToken.",
+        "description": "Initiates an OAuth connection flow. By default, PostPeer hosts any required account selection UI and then returns the user to redirectUri. For LinkedIn or Facebook custom account-selection UI, pass headless=true; if selection is required, the callback redirects to redirectUri with status=selection_required, platform, and selectionToken.",
         "parameters": [
           {
             "schema": {
@@ -1789,6 +2129,231 @@
       }
     },
     "/v1/connect/integrations/{id}": {
+      "get": {
+        "operationId": "getIntegration",
+        "summary": "Get integration details",
+        "tags": [
+          "Connect"
+        ],
+        "description": "Returns one integration, including its recorded OAuth scopes and token expiry metadata. OAuth tokens are never returned.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Integration ID"
+          }
+        ],
+        "security": [
+          {
+            "accessKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "integration"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "integration": {
+                      "type": "object",
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "id",
+                            "platform",
+                            "platformUserId",
+                            "username",
+                            "displayName",
+                            "profileUrl",
+                            "imageUrl",
+                            "profileId",
+                            "appId",
+                            "app",
+                            "byok",
+                            "createdAt"
+                          ],
+                          "properties": {
+                            "id": {
+                              "description": "Use this as accountId when creating posts",
+                              "type": "string"
+                            },
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "twitter",
+                                "instagram",
+                                "youtube",
+                                "tiktok",
+                                "pinterest",
+                                "linkedin",
+                                "bluesky",
+                                "facebook",
+                                "threads",
+                                "googlebusiness"
+                              ]
+                            },
+                            "platformUserId": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "The user ID on the platform, or null if not yet retrieved"
+                            },
+                            "username": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "The public username or handle, including @ for handle-based platforms"
+                            },
+                            "displayName": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Human-readable display name of the connected account"
+                            },
+                            "profileUrl": {
+                              "type": "string",
+                              "format": "uri",
+                              "nullable": true,
+                              "description": "Public profile/page URL for the connected account, when it can be derived"
+                            },
+                            "imageUrl": {
+                              "type": "string",
+                              "format": "uri",
+                              "nullable": true,
+                              "description": "Profile image URL for the connected account, or null if unavailable"
+                            },
+                            "platformMetadata": {
+                              "type": "object",
+                              "additionalProperties": true,
+                              "description": "Provider-specific public metadata for this connected account."
+                            },
+                            "profileId": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                            },
+                            "appId": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used."
+                            },
+                            "app": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "imageUrl": {
+                                  "type": "string",
+                                  "nullable": true
+                                }
+                              },
+                              "description": "The OAuth app metadata for BYOK integrations, or null when postpeer system app was used."
+                            },
+                            "byok": {
+                              "description": "True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.",
+                              "type": "boolean"
+                            },
+                            "createdAt": {
+                              "format": "date-time",
+                              "type": "string"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "scopes",
+                            "accessTokenExpiresAt",
+                            "refreshTokenExpiresAt",
+                            "tokenStatus",
+                            "updatedAt"
+                          ],
+                          "properties": {
+                            "scopes": {
+                              "description": "OAuth scopes recorded when this integration was connected",
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "accessTokenExpiresAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true,
+                              "description": "When the current access token expires, or null when the provider does not report an expiry"
+                            },
+                            "refreshTokenExpiresAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true,
+                              "description": "When the refresh token expires, or null when the provider does not report an expiry"
+                            },
+                            "tokenStatus": {
+                              "type": "object",
+                              "required": [
+                                "valid",
+                                "autoRefreshes"
+                              ],
+                              "properties": {
+                                "valid": {
+                                  "description": "Whether recorded expiry metadata indicates the integration can authenticate. Provider revocation is detected when the integration is used.",
+                                  "type": "boolean"
+                                },
+                                "autoRefreshes": {
+                                  "description": "Whether PostPeer automatically refreshes this platform token when needed.",
+                                  "type": "boolean"
+                                }
+                              }
+                            },
+                            "updatedAt": {
+                              "format": "date-time",
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "operationId": "disconnectIntegration",
         "summary": "Disconnect a platform integration",
@@ -1803,7 +2368,7 @@
             "in": "path",
             "name": "id",
             "required": true,
-            "description": "Integration ID to disconnect"
+            "description": "Integration ID"
           }
         ],
         "security": [
@@ -4341,6 +4906,9 @@
                     "description": "Target platform accounts to publish to",
                     "type": "array",
                     "items": {
+                      "discriminator": {
+                        "propertyName": "platform"
+                      },
                       "oneOf": [
                         {
                           "additionalProperties": false,
@@ -6054,6 +6622,9 @@
                     "description": "Replacement target platform accounts to publish to",
                     "type": "array",
                     "items": {
+                      "discriminator": {
+                        "propertyName": "platform"
+                      },
                       "oneOf": [
                         {
                           "additionalProperties": false,

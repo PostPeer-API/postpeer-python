@@ -84,8 +84,11 @@ client.health.check()
 client.health.verify_access_key()
 
 client.connect.get_oauth_url(platform="linkedin")
+client.connect.facebook.get_selection(token="...")
+client.connect.facebook.submit_selection(token="...", selected_account_ids=["..."])
 client.connect.linkedin.get_selection(token="...")
 client.connect.integrations.list()
+client.connect.integrations.get(id="...")
 
 client.profiles.create(name="Marketing")
 client.apps.list()
@@ -111,6 +114,9 @@ client.pinterest.get_boards(account_id="...")
 client.tiktok.get_creator_info(account_id="...")
 client.ai.write(description="A launch announcement", platforms=["linkedin"])
 ```
+
+Eligible X Premium accounts can opt into long posts with
+`platformSpecificData={"longPost": True}` on the Twitter platform entry.
 
 Parameters use Python `snake_case`; the SDK serializes their OpenAPI aliases on
 the wire. Responses are validated Pydantic v2 models. All generated models and

@@ -84,6 +84,7 @@ class TwitterConfigurations(BaseModel):
     reply_to_tweet_id: Optional[str] = Field(default=None, alias="replyToTweetId", description="Tweet ID to reply to.")
     reply_settings: Optional[TwitterConfigurationsReplySettings] = Field(default=None, alias="replySettings")
     thread_items: Optional[list[TwitterConfigurationsThreadItems]] = Field(default=None, alias="threadItems", description="Additional tweets to chain as a thread. The root tweet uses post.content.")
+    long_post: Optional[bool] = Field(default=None, alias="longPost", description="Opt in to long posts (over 280 characters). Skips PostPeer's 280-character pre-check so X can accept up to 25,000 characters for eligible Premium / Premium+ accounts. If the connected account is not eligible, X rejects the post and the error is surfaced back. No extra API cost.")
     poll: Optional[TwitterConfigurationsPoll] = Field(default=None, description="Cannot be combined with media or threadItems.")
 
 
@@ -512,6 +513,94 @@ class SubmitLinkedInSelectionResponse(BaseModel):
     integrations: list[SubmitLinkedInSelectionIntegrations]
 
 
+class GetFacebookSelectionPath(BaseModel):
+    token: Annotated[str, Field(min_length=1)]
+
+
+class GetFacebookSelectionPlatform(str, Enum):
+    FACEBOOK = "facebook"
+
+
+class GetFacebookSelectionAccountsType(str, Enum):
+    PAGE = "page"
+
+
+class GetFacebookSelectionAccounts(BaseModel):
+    id: str
+    type: GetFacebookSelectionAccountsType
+    platform_user_id: str = Field(..., alias="platformUserId")
+    display_name: Optional[str] = Field(default=None, alias="displayName")
+    username: Optional[str] = None
+    image_url: Optional[AnyUrl] = Field(default=None, alias="imageUrl")
+
+
+class GetFacebookSelectionResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    platform: GetFacebookSelectionPlatform
+    expires_in_seconds: float = Field(..., alias="expiresInSeconds")
+    accounts: list[GetFacebookSelectionAccounts]
+
+
+class SubmitFacebookSelectionBody(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    selected_account_ids: Annotated[list[str], Field(min_length=1)] = Field(..., alias="selectedAccountIds")
+
+
+class SubmitFacebookSelectionPath(BaseModel):
+    token: Annotated[str, Field(min_length=1)]
+
+
+class SubmitFacebookSelectionPlatform(str, Enum):
+    FACEBOOK = "facebook"
+
+
+class SubmitFacebookSelectionIntegrationsPlatform(str, Enum):
+    TWITTER = "twitter"
+    INSTAGRAM = "instagram"
+    YOUTUBE = "youtube"
+    TIKTOK = "tiktok"
+    PINTEREST = "pinterest"
+    LINKEDIN = "linkedin"
+    BLUESKY = "bluesky"
+    FACEBOOK = "facebook"
+    THREADS = "threads"
+    GOOGLEBUSINESS = "googlebusiness"
+
+
+class SubmitFacebookSelectionIntegrationsApp(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    image_url: Optional[str] = Field(default=None, alias="imageUrl")
+
+
+class SubmitFacebookSelectionIntegrations(BaseModel):
+    id: str = Field(..., description="Use this as accountId when creating posts")
+    platform: SubmitFacebookSelectionIntegrationsPlatform
+    platform_user_id: Optional[str] = Field(default=None, alias="platformUserId", description="The user ID on the platform, or null if not yet retrieved")
+    username: Optional[str] = Field(default=None, description="The public username or handle, including @ for handle-based platforms")
+    display_name: Optional[str] = Field(default=None, alias="displayName", description="Human-readable display name of the connected account")
+    profile_url: Optional[AnyUrl] = Field(default=None, alias="profileUrl", description="Public profile/page URL for the connected account, when it can be derived")
+    image_url: Optional[AnyUrl] = Field(default=None, alias="imageUrl", description="Profile image URL for the connected account, or null if unavailable")
+    platform_metadata: Optional[dict[str, Any]] = Field(default=None, alias="platformMetadata", description="Provider-specific public metadata for this connected account.")
+    profile_id: Optional[str] = Field(default=None, alias="profileId", description="Profile this integration belongs to, or null if it was connected without a profile")
+    app_id: Optional[str] = Field(default=None, alias="appId", description="The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used.")
+    app: Optional[SubmitFacebookSelectionIntegrationsApp] = Field(default=None, description="The OAuth app metadata for BYOK integrations, or null when postpeer system app was used.")
+    byok: bool = Field(..., description="True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.")
+    created_at: datetime = Field(..., alias="createdAt")
+
+
+class SubmitFacebookSelectionResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    platform: SubmitFacebookSelectionPlatform
+    message: str
+    redirect_uri: Optional[str] = Field(default=None, alias="redirectUri")
+    integrations: list[SubmitFacebookSelectionIntegrations]
+
+
 class GetOAuthUrlPlatform(str, Enum):
     TWITTER = "twitter"
     INSTAGRAM = "instagram"
@@ -623,7 +712,7 @@ class ListIntegrationsResponse(BaseModel):
 
 
 class DisconnectIntegrationPath(BaseModel):
-    id: str = Field(..., description="Integration ID to disconnect")
+    id: str = Field(..., description="Integration ID")
 
 
 class DisconnectIntegrationResponse(BaseModel):
@@ -631,6 +720,65 @@ class DisconnectIntegrationResponse(BaseModel):
 
     success: bool
     message: str
+
+
+class GetIntegrationPath(BaseModel):
+    id: str = Field(..., description="Integration ID")
+
+
+class GetIntegrationIntegrationPlatform(str, Enum):
+    TWITTER = "twitter"
+    INSTAGRAM = "instagram"
+    YOUTUBE = "youtube"
+    TIKTOK = "tiktok"
+    PINTEREST = "pinterest"
+    LINKEDIN = "linkedin"
+    BLUESKY = "bluesky"
+    FACEBOOK = "facebook"
+    THREADS = "threads"
+    GOOGLEBUSINESS = "googlebusiness"
+
+
+class GetIntegrationIntegrationApp(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    image_url: Optional[str] = Field(default=None, alias="imageUrl")
+
+
+class GetIntegrationIntegration(BaseModel):
+    id: str = Field(..., description="Use this as accountId when creating posts")
+    platform: GetIntegrationIntegrationPlatform
+    platform_user_id: Optional[str] = Field(default=None, alias="platformUserId", description="The user ID on the platform, or null if not yet retrieved")
+    username: Optional[str] = Field(default=None, description="The public username or handle, including @ for handle-based platforms")
+    display_name: Optional[str] = Field(default=None, alias="displayName", description="Human-readable display name of the connected account")
+    profile_url: Optional[AnyUrl] = Field(default=None, alias="profileUrl", description="Public profile/page URL for the connected account, when it can be derived")
+    image_url: Optional[AnyUrl] = Field(default=None, alias="imageUrl", description="Profile image URL for the connected account, or null if unavailable")
+    platform_metadata: Optional[dict[str, Any]] = Field(default=None, alias="platformMetadata", description="Provider-specific public metadata for this connected account.")
+    profile_id: Optional[str] = Field(default=None, alias="profileId", description="Profile this integration belongs to, or null if it was connected without a profile")
+    app_id: Optional[str] = Field(default=None, alias="appId", description="The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used.")
+    app: Optional[GetIntegrationIntegrationApp] = Field(default=None, description="The OAuth app metadata for BYOK integrations, or null when postpeer system app was used.")
+    byok: bool = Field(..., description="True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.")
+    created_at: datetime = Field(..., alias="createdAt")
+
+
+class GetIntegrationIntegrationTokenStatus(BaseModel):
+    valid: bool = Field(..., description="Whether recorded expiry metadata indicates the integration can authenticate. Provider revocation is detected when the integration is used.")
+    auto_refreshes: bool = Field(..., alias="autoRefreshes", description="Whether PostPeer automatically refreshes this platform token when needed.")
+
+
+class GetIntegrationIntegration_(BaseModel):
+    scopes: list[str] = Field(..., description="OAuth scopes recorded when this integration was connected")
+    access_token_expires_at: Optional[datetime] = Field(default=None, alias="accessTokenExpiresAt", description="When the current access token expires, or null when the provider does not report an expiry")
+    refresh_token_expires_at: Optional[datetime] = Field(default=None, alias="refreshTokenExpiresAt", description="When the refresh token expires, or null when the provider does not report an expiry")
+    token_status: GetIntegrationIntegrationTokenStatus = Field(..., alias="tokenStatus")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+
+class GetIntegrationResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    integration: Any
 
 
 class ListProfilesQuery(BaseModel):
