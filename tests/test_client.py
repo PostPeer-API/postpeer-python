@@ -68,7 +68,7 @@ def test_reads_api_key_from_environment_and_returns_model(
     assert isinstance(response, HealthCheckResponse)
     assert response.ok is True
     assert requests[0].headers["x-access-key"] == "env-key"
-    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.2"
+    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.3"
     assert requests[0].url == "https://api.postpeer.dev/v1/health"
     client.close()
     assert not raw.is_closed
@@ -107,6 +107,7 @@ def test_resource_structure_and_sync_async_parity() -> None:
         (sync.connect.linkedin.get_selection, asynchronous.connect.linkedin.get_selection),
         (sync.connect.integrations.get, asynchronous.connect.integrations.get),
         (sync.connect.integrations.list, asynchronous.connect.integrations.list),
+        (sync.connect.integrations.move, asynchronous.connect.integrations.move),
         (sync.ai.generate_image, asynchronous.ai.generate_image),
     ]
 
@@ -176,6 +177,22 @@ def test_path_encoding_query_arrays_and_none_omission() -> None:
         client.posts.list(platform=["twitter", "linkedin"], profile_id=None)
     assert requests[1].url.params.get_list("platform") == ["twitter", "linkedin"]
     assert "profileId" not in requests[1].url.params
+
+
+def test_required_nullable_body_value_is_preserved() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return json_response(request, {"success": True, "integration": {}})
+
+    client = sync_client(handler)
+    with pytest.raises(APIResponseValidationError):
+        client.connect.integrations.move(id="integration/123", profile_id=None)
+
+    assert requests[0].method == "PATCH"
+    assert requests[0].url.raw_path.endswith(b"/integrations/integration%2F123")
+    assert json.loads(requests[0].read()) == {"profileId": None}
 
 
 def test_edit_scheduled_post_with_instagram_story_config() -> None:

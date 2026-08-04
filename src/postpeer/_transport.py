@@ -65,7 +65,7 @@ def _serialize(value: Any) -> Any:
     if isinstance(value, BaseModel):
         return value.model_dump(mode="json", by_alias=True, exclude_none=True)
     if isinstance(value, dict):
-        return {key: _serialize(item) for key, item in value.items() if item is not None}
+        return {key: _serialize(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
         return [_serialize(item) for item in value]
     return value

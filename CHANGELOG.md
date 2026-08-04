@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3
+
+- Add `connect.integrations.move(...)` for assigning an integration to a profile
+  or leaving it unassigned.
+- Expose integration authentication status and failure reasons so applications
+  can prompt users to reconnect affected accounts.
+- Add Instagram collaborator support for feed posts, carousels, and Reels.
+- Match complete integration IDs in `connect.integrations.list(q=...)` searches.
+
 ## 0.1.2
 
 - Add Facebook Page selection methods under `connect.facebook`.
