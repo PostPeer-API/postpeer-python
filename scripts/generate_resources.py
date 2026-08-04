@@ -30,6 +30,7 @@ OPERATION_PATHS: dict[str, tuple[str, ...]] = {
     "connectBluesky": ("connect", "bluesky"),
     "listIntegrations": ("connect", "integrations", "list"),
     "getIntegration": ("connect", "integrations", "get"),
+    "moveIntegration": ("connect", "integrations", "move"),
     "disconnectIntegration": ("connect", "integrations", "disconnect"),
     "createProfile": ("profiles", "create"),
     "listProfiles": ("profiles", "list"),
@@ -116,6 +117,9 @@ def pascal_case(value: str) -> str:
 
 
 def annotation_for(schema: dict[str, Any], *, generated_name: str | None = None) -> str:
+    if schema.get("nullable"):
+        non_nullable = {key: value for key, value in schema.items() if key != "nullable"}
+        return f"{annotation_for(non_nullable, generated_name=generated_name)} | None"
     if "$ref" in schema:
         return f"models.{schema['$ref'].rsplit('/', 1)[-1]}"
     alternatives = schema.get("oneOf") or schema.get("anyOf")
@@ -130,6 +134,8 @@ def annotation_for(schema: dict[str, Any], *, generated_name: str | None = None)
             annotations.append(annotation_for(alternative, generated_name=alternative_name))
         return " | ".join(annotations)
     schema_type = schema.get("type")
+    if schema_type == "null":
+        return "None"
     if schema_type == "string":
         if schema.get("enum") and generated_name:
             return f"models.{generated_name} | str"
@@ -370,6 +376,18 @@ def emit_method(operation: Operation, *, asynchronous: bool) -> list[str]:
                 '        ).model_dump(mode="json", by_alias=True, exclude_none=True)',
             ]
         )
+        for parameter in operation.parameters:
+            if (
+                parameter.location == "body"
+                and parameter.required
+                and "None" in parameter.annotation
+            ):
+                lines.extend(
+                    [
+                        f"        if {parameter.python_name} is None:",
+                        f"            body[{parameter.wire_name!r}] = None",
+                    ]
+                )
     else:
         lines.append("        body = None")
 

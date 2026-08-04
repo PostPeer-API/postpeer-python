@@ -203,13 +203,14 @@ class InstagramConfigurationsContentType(str, Enum):
 
 
 class InstagramConfigurations(BaseModel):
-    """Pass this object in platformSpecificData when posting to Instagram. Use contentType to publish Stories; the remaining fields customize Reels."""
+    """Pass this object in platformSpecificData when posting to Instagram. Use contentType to publish Stories; the remaining fields customize feed posts and Reels."""
 
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
     content_type: Optional[InstagramConfigurationsContentType] = Field(default=None, alias="contentType", description='Set to "story" to publish an Instagram Story. Omit for the existing behavior: images publish to Feed and videos publish as Reels.')
     share_to_feed: Optional[bool] = Field(default=None, alias="shareToFeed", description="Reels-only. When true (default), the Reel also appears in the account's main feed grid. Set false to publish to Reels only.")
     cover_url: Optional[AnyUrl] = Field(default=None, alias="coverUrl", description="Video-only. Public URL of an image Instagram will use as the cover frame for the Reel/video post. Ignored for image posts.")
     thumb_offset: Optional[Annotated[int, Field(ge=0)]] = Field(default=None, alias="thumbOffset", description="Video-only. Timestamp in milliseconds Instagram extracts as the cover frame. Ignored when coverUrl is set or for image posts.")
+    collaborators: Optional[Annotated[list[str], Field(min_length=1, max_length=3)]] = Field(default=None, description="Feed posts, carousels, and Reels only. Up to three Instagram usernames to invite as collaborators. Each account must accept the invitation in Instagram.")
 
 
 class ThreadsConfigurationsReplyControl(str, Enum):
@@ -487,6 +488,30 @@ class SubmitLinkedInSelectionIntegrationsApp(BaseModel):
     image_url: Optional[str] = Field(default=None, alias="imageUrl")
 
 
+class SubmitLinkedInSelectionIntegrationsAuthStatus(str, Enum):
+    ACTIVE = "active"
+
+
+class SubmitLinkedInSelectionIntegrationsAuthStatus_(str, Enum):
+    RECONNECT_REQUIRED = "reconnect_required"
+
+
+class SubmitLinkedInSelectionIntegrationsAuthFailureReason(str, Enum):
+    TOKEN_EXPIRED = "token_expired"
+
+
+class SubmitLinkedInSelectionIntegrationsAuthFailureReason_(str, Enum):
+    ACCESS_REVOKED = "access_revoked"
+
+
+class SubmitLinkedInSelectionIntegrationsAuthFailureReason_2(str, Enum):
+    SECURITY_INVALIDATION = "security_invalidation"
+
+
+class SubmitLinkedInSelectionIntegrationsAuthFailureReason_3(str, Enum):
+    REFRESH_REJECTED = "refresh_rejected"
+
+
 class SubmitLinkedInSelectionIntegrations(BaseModel):
     id: str = Field(..., description="Use this as accountId when creating posts")
     platform: SubmitLinkedInSelectionIntegrationsPlatform
@@ -500,6 +525,8 @@ class SubmitLinkedInSelectionIntegrations(BaseModel):
     app_id: Optional[str] = Field(default=None, alias="appId", description="The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used.")
     app: Optional[SubmitLinkedInSelectionIntegrationsApp] = Field(default=None, description="The OAuth app metadata for BYOK integrations, or null when postpeer system app was used.")
     byok: bool = Field(..., description="True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.")
+    auth_status: Union[SubmitLinkedInSelectionIntegrationsAuthStatus, SubmitLinkedInSelectionIntegrationsAuthStatus_] = Field(..., alias="authStatus", description="Whether this integration can authenticate or needs OAuth reconnection")
+    auth_failure_reason: Union[SubmitLinkedInSelectionIntegrationsAuthFailureReason, SubmitLinkedInSelectionIntegrationsAuthFailureReason_, SubmitLinkedInSelectionIntegrationsAuthFailureReason_2, SubmitLinkedInSelectionIntegrationsAuthFailureReason_3, Any] = Field(..., alias="authFailureReason", description="Stable reason reconnection is required, or null while active")
     created_at: datetime = Field(..., alias="createdAt")
 
 
@@ -575,6 +602,30 @@ class SubmitFacebookSelectionIntegrationsApp(BaseModel):
     image_url: Optional[str] = Field(default=None, alias="imageUrl")
 
 
+class SubmitFacebookSelectionIntegrationsAuthStatus(str, Enum):
+    ACTIVE = "active"
+
+
+class SubmitFacebookSelectionIntegrationsAuthStatus_(str, Enum):
+    RECONNECT_REQUIRED = "reconnect_required"
+
+
+class SubmitFacebookSelectionIntegrationsAuthFailureReason(str, Enum):
+    TOKEN_EXPIRED = "token_expired"
+
+
+class SubmitFacebookSelectionIntegrationsAuthFailureReason_(str, Enum):
+    ACCESS_REVOKED = "access_revoked"
+
+
+class SubmitFacebookSelectionIntegrationsAuthFailureReason_2(str, Enum):
+    SECURITY_INVALIDATION = "security_invalidation"
+
+
+class SubmitFacebookSelectionIntegrationsAuthFailureReason_3(str, Enum):
+    REFRESH_REJECTED = "refresh_rejected"
+
+
 class SubmitFacebookSelectionIntegrations(BaseModel):
     id: str = Field(..., description="Use this as accountId when creating posts")
     platform: SubmitFacebookSelectionIntegrationsPlatform
@@ -588,6 +639,8 @@ class SubmitFacebookSelectionIntegrations(BaseModel):
     app_id: Optional[str] = Field(default=None, alias="appId", description="The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used.")
     app: Optional[SubmitFacebookSelectionIntegrationsApp] = Field(default=None, description="The OAuth app metadata for BYOK integrations, or null when postpeer system app was used.")
     byok: bool = Field(..., description="True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.")
+    auth_status: Union[SubmitFacebookSelectionIntegrationsAuthStatus, SubmitFacebookSelectionIntegrationsAuthStatus_] = Field(..., alias="authStatus", description="Whether this integration can authenticate or needs OAuth reconnection")
+    auth_failure_reason: Union[SubmitFacebookSelectionIntegrationsAuthFailureReason, SubmitFacebookSelectionIntegrationsAuthFailureReason_, SubmitFacebookSelectionIntegrationsAuthFailureReason_2, SubmitFacebookSelectionIntegrationsAuthFailureReason_3, Any] = Field(..., alias="authFailureReason", description="Stable reason reconnection is required, or null while active")
     created_at: datetime = Field(..., alias="createdAt")
 
 
@@ -662,7 +715,7 @@ class ListIntegrationsPlatform(str, Enum):
 class ListIntegrationsQuery(BaseModel):
     platform: Optional[ListIntegrationsPlatform] = None
     profile_id: Optional[str] = Field(default=None, alias="profileId", description='Filter to integrations belonging to this profile. Pass "null" (literal string) to filter to integrations with no profile.')
-    q: Optional[str] = Field(default=None, description="Case-insensitive search across the connected account name (displayName), username, and platform user ID.")
+    q: Optional[str] = Field(default=None, description="Case-insensitive search across the connected account name (displayName), username, and platform user ID. A complete integration ID is also matched exactly.")
     limit: Optional[Annotated[int, Field(ge=1, le=100)]] = Field(default=20, description="Page size (max 100)")
     offset: Optional[Annotated[int, Field(ge=0)]] = Field(default=0, description="Number of integrations to skip")
     sort: Optional[SortOrder] = None
@@ -687,6 +740,30 @@ class ListIntegrationsIntegrationsApp(BaseModel):
     image_url: Optional[str] = Field(default=None, alias="imageUrl")
 
 
+class ListIntegrationsIntegrationsAuthStatus(str, Enum):
+    ACTIVE = "active"
+
+
+class ListIntegrationsIntegrationsAuthStatus_(str, Enum):
+    RECONNECT_REQUIRED = "reconnect_required"
+
+
+class ListIntegrationsIntegrationsAuthFailureReason(str, Enum):
+    TOKEN_EXPIRED = "token_expired"
+
+
+class ListIntegrationsIntegrationsAuthFailureReason_(str, Enum):
+    ACCESS_REVOKED = "access_revoked"
+
+
+class ListIntegrationsIntegrationsAuthFailureReason_2(str, Enum):
+    SECURITY_INVALIDATION = "security_invalidation"
+
+
+class ListIntegrationsIntegrationsAuthFailureReason_3(str, Enum):
+    REFRESH_REJECTED = "refresh_rejected"
+
+
 class ListIntegrationsIntegrations(BaseModel):
     id: str = Field(..., description="Use this as accountId when creating posts")
     platform: ListIntegrationsIntegrationsPlatform
@@ -700,6 +777,8 @@ class ListIntegrationsIntegrations(BaseModel):
     app_id: Optional[str] = Field(default=None, alias="appId", description="The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used.")
     app: Optional[ListIntegrationsIntegrationsApp] = Field(default=None, description="The OAuth app metadata for BYOK integrations, or null when postpeer system app was used.")
     byok: bool = Field(..., description="True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.")
+    auth_status: Union[ListIntegrationsIntegrationsAuthStatus, ListIntegrationsIntegrationsAuthStatus_] = Field(..., alias="authStatus", description="Whether this integration can authenticate or needs OAuth reconnection")
+    auth_failure_reason: Union[ListIntegrationsIntegrationsAuthFailureReason, ListIntegrationsIntegrationsAuthFailureReason_, ListIntegrationsIntegrationsAuthFailureReason_2, ListIntegrationsIntegrationsAuthFailureReason_3, Any] = Field(..., alias="authFailureReason", description="Stable reason reconnection is required, or null while active")
     created_at: datetime = Field(..., alias="createdAt")
 
 
@@ -745,6 +824,30 @@ class GetIntegrationIntegrationApp(BaseModel):
     image_url: Optional[str] = Field(default=None, alias="imageUrl")
 
 
+class GetIntegrationIntegrationAuthStatus(str, Enum):
+    ACTIVE = "active"
+
+
+class GetIntegrationIntegrationAuthStatus_(str, Enum):
+    RECONNECT_REQUIRED = "reconnect_required"
+
+
+class GetIntegrationIntegrationAuthFailureReason(str, Enum):
+    TOKEN_EXPIRED = "token_expired"
+
+
+class GetIntegrationIntegrationAuthFailureReason_(str, Enum):
+    ACCESS_REVOKED = "access_revoked"
+
+
+class GetIntegrationIntegrationAuthFailureReason_2(str, Enum):
+    SECURITY_INVALIDATION = "security_invalidation"
+
+
+class GetIntegrationIntegrationAuthFailureReason_3(str, Enum):
+    REFRESH_REJECTED = "refresh_rejected"
+
+
 class GetIntegrationIntegration(BaseModel):
     id: str = Field(..., description="Use this as accountId when creating posts")
     platform: GetIntegrationIntegrationPlatform
@@ -758,12 +861,32 @@ class GetIntegrationIntegration(BaseModel):
     app_id: Optional[str] = Field(default=None, alias="appId", description="The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used.")
     app: Optional[GetIntegrationIntegrationApp] = Field(default=None, description="The OAuth app metadata for BYOK integrations, or null when postpeer system app was used.")
     byok: bool = Field(..., description="True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.")
+    auth_status: Union[GetIntegrationIntegrationAuthStatus, GetIntegrationIntegrationAuthStatus_] = Field(..., alias="authStatus", description="Whether this integration can authenticate or needs OAuth reconnection")
+    auth_failure_reason: Union[GetIntegrationIntegrationAuthFailureReason, GetIntegrationIntegrationAuthFailureReason_, GetIntegrationIntegrationAuthFailureReason_2, GetIntegrationIntegrationAuthFailureReason_3, Any] = Field(..., alias="authFailureReason", description="Stable reason reconnection is required, or null while active")
     created_at: datetime = Field(..., alias="createdAt")
+
+
+class GetIntegrationIntegrationTokenStatusReason(str, Enum):
+    TOKEN_EXPIRED = "token_expired"
+
+
+class GetIntegrationIntegrationTokenStatusReason_(str, Enum):
+    ACCESS_REVOKED = "access_revoked"
+
+
+class GetIntegrationIntegrationTokenStatusReason_2(str, Enum):
+    SECURITY_INVALIDATION = "security_invalidation"
+
+
+class GetIntegrationIntegrationTokenStatusReason_3(str, Enum):
+    REFRESH_REJECTED = "refresh_rejected"
 
 
 class GetIntegrationIntegrationTokenStatus(BaseModel):
     valid: bool = Field(..., description="Whether recorded expiry metadata indicates the integration can authenticate. Provider revocation is detected when the integration is used.")
     auto_refreshes: bool = Field(..., alias="autoRefreshes", description="Whether PostPeer automatically refreshes this platform token when needed.")
+    reconnect_required: bool = Field(..., alias="reconnectRequired", description="Whether this integration must complete OAuth again")
+    reason: Union[GetIntegrationIntegrationTokenStatusReason, GetIntegrationIntegrationTokenStatusReason_, GetIntegrationIntegrationTokenStatusReason_2, GetIntegrationIntegrationTokenStatusReason_3, Any]
 
 
 class GetIntegrationIntegration_(BaseModel):
@@ -779,6 +902,83 @@ class GetIntegrationResponse(BaseModel):
 
     success: bool
     integration: Any
+
+
+class MoveIntegrationBody(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    profile_id: Optional[str] = Field(default=None, alias="profileId", description="Destination profile ID. Pass null to remove the integration from its current profile.")
+
+
+class MoveIntegrationPath(BaseModel):
+    id: str = Field(..., description="Integration ID")
+
+
+class MoveIntegrationIntegrationPlatform(str, Enum):
+    TWITTER = "twitter"
+    INSTAGRAM = "instagram"
+    YOUTUBE = "youtube"
+    TIKTOK = "tiktok"
+    PINTEREST = "pinterest"
+    LINKEDIN = "linkedin"
+    BLUESKY = "bluesky"
+    FACEBOOK = "facebook"
+    THREADS = "threads"
+    GOOGLEBUSINESS = "googlebusiness"
+
+
+class MoveIntegrationIntegrationApp(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    image_url: Optional[str] = Field(default=None, alias="imageUrl")
+
+
+class MoveIntegrationIntegrationAuthStatus(str, Enum):
+    ACTIVE = "active"
+
+
+class MoveIntegrationIntegrationAuthStatus_(str, Enum):
+    RECONNECT_REQUIRED = "reconnect_required"
+
+
+class MoveIntegrationIntegrationAuthFailureReason(str, Enum):
+    TOKEN_EXPIRED = "token_expired"
+
+
+class MoveIntegrationIntegrationAuthFailureReason_(str, Enum):
+    ACCESS_REVOKED = "access_revoked"
+
+
+class MoveIntegrationIntegrationAuthFailureReason_2(str, Enum):
+    SECURITY_INVALIDATION = "security_invalidation"
+
+
+class MoveIntegrationIntegrationAuthFailureReason_3(str, Enum):
+    REFRESH_REJECTED = "refresh_rejected"
+
+
+class MoveIntegrationIntegration(BaseModel):
+    id: str = Field(..., description="Use this as accountId when creating posts")
+    platform: MoveIntegrationIntegrationPlatform
+    platform_user_id: Optional[str] = Field(default=None, alias="platformUserId", description="The user ID on the platform, or null if not yet retrieved")
+    username: Optional[str] = Field(default=None, description="The public username or handle, including @ for handle-based platforms")
+    display_name: Optional[str] = Field(default=None, alias="displayName", description="Human-readable display name of the connected account")
+    profile_url: Optional[AnyUrl] = Field(default=None, alias="profileUrl", description="Public profile/page URL for the connected account, when it can be derived")
+    image_url: Optional[AnyUrl] = Field(default=None, alias="imageUrl", description="Profile image URL for the connected account, or null if unavailable")
+    platform_metadata: Optional[dict[str, Any]] = Field(default=None, alias="platformMetadata", description="Provider-specific public metadata for this connected account.")
+    profile_id: Optional[str] = Field(default=None, alias="profileId", description="Profile this integration belongs to, or null if it was connected without a profile")
+    app_id: Optional[str] = Field(default=None, alias="appId", description="The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used.")
+    app: Optional[MoveIntegrationIntegrationApp] = Field(default=None, description="The OAuth app metadata for BYOK integrations, or null when postpeer system app was used.")
+    byok: bool = Field(..., description="True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.")
+    auth_status: Union[MoveIntegrationIntegrationAuthStatus, MoveIntegrationIntegrationAuthStatus_] = Field(..., alias="authStatus", description="Whether this integration can authenticate or needs OAuth reconnection")
+    auth_failure_reason: Union[MoveIntegrationIntegrationAuthFailureReason, MoveIntegrationIntegrationAuthFailureReason_, MoveIntegrationIntegrationAuthFailureReason_2, MoveIntegrationIntegrationAuthFailureReason_3, Any] = Field(..., alias="authFailureReason", description="Stable reason reconnection is required, or null while active")
+    created_at: datetime = Field(..., alias="createdAt")
+
+
+class MoveIntegrationResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    integration: MoveIntegrationIntegration
 
 
 class ListProfilesQuery(BaseModel):

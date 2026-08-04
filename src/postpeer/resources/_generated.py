@@ -235,6 +235,34 @@ class SyncConnectIntegrationsResource(_SyncResource):
             options=_request_options,
         )
 
+    def move(
+        self,
+        id: str,
+        profile_id: str | None,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.MoveIntegrationResponse:
+        """Move an integration to another profile"""
+        path_values = models.MoveIntegrationPath.model_validate(
+            {'id': id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/integrations/{id}'
+        path = path.replace('{id}', quote(str(path_values['id']), safe=''))
+        query = None
+        body = models.MoveIntegrationBody.model_validate(
+            {'profileId': profile_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        if profile_id is None:
+            body['profileId'] = None
+        return self._transport.request(
+            'PATCH',
+            path,
+            response_model=models.MoveIntegrationResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
 
 class SyncConnectResource(_SyncResource):
     def bluesky(
@@ -406,7 +434,7 @@ class SyncProfilesResource(_SyncResource):
         id: str,
         *,
         name: str | None = None,
-        description: str | None = None,
+        description: str | None | None = None,
         _request_options: RequestOptions | None = None,
     ) -> models.UpdateProfileResponse:
         """Update a profile"""
@@ -530,7 +558,7 @@ class SyncAppsResource(_SyncResource):
         id: str,
         *,
         name: str | None = None,
-        image_url: str | None = None,
+        image_url: str | None | None = None,
         client_secret: str | None = None,
         _request_options: RequestOptions | None = None,
     ) -> models.UpdateAppResponse:
@@ -560,7 +588,7 @@ class SyncNotificationsResource(_SyncResource):
         channel: models.CreateNotificationChannel | str,
         event_types: Sequence[models.CreateNotificationEventTypes | str],
         *,
-        profile_id: str | None = None,
+        profile_id: str | None | None = None,
         only_scheduled_posts: bool | None = None,
         enabled: bool | None = None,
         webhook: models.CreateNotificationWebhook | Mapping[str, Any] | None = None,
@@ -650,7 +678,7 @@ class SyncNotificationsResource(_SyncResource):
         self,
         channel: models.TestNotificationChannel | str,
         *,
-        profile_id: str | None = None,
+        profile_id: str | None | None = None,
         webhook: models.TestNotificationWebhook | Mapping[str, Any] | None = None,
         email: models.TestNotificationEmail | Mapping[str, Any] | None = None,
         _request_options: RequestOptions | None = None,
@@ -674,7 +702,7 @@ class SyncNotificationsResource(_SyncResource):
         self,
         id: str,
         *,
-        profile_id: str | None = None,
+        profile_id: str | None | None = None,
         event_types: Sequence[models.UpdateNotificationEventTypes | str] | None = None,
         only_scheduled_posts: bool | None = None,
         enabled: bool | None = None,
@@ -1384,6 +1412,34 @@ class AsyncConnectIntegrationsResource(_AsyncResource):
             options=_request_options,
         )
 
+    async def move(
+        self,
+        id: str,
+        profile_id: str | None,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.MoveIntegrationResponse:
+        """Move an integration to another profile"""
+        path_values = models.MoveIntegrationPath.model_validate(
+            {'id': id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/connect/integrations/{id}'
+        path = path.replace('{id}', quote(str(path_values['id']), safe=''))
+        query = None
+        body = models.MoveIntegrationBody.model_validate(
+            {'profileId': profile_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        if profile_id is None:
+            body['profileId'] = None
+        return await self._transport.request(
+            'PATCH',
+            path,
+            response_model=models.MoveIntegrationResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
 
 class AsyncConnectResource(_AsyncResource):
     async def bluesky(
@@ -1555,7 +1611,7 @@ class AsyncProfilesResource(_AsyncResource):
         id: str,
         *,
         name: str | None = None,
-        description: str | None = None,
+        description: str | None | None = None,
         _request_options: RequestOptions | None = None,
     ) -> models.UpdateProfileResponse:
         """Update a profile"""
@@ -1679,7 +1735,7 @@ class AsyncAppsResource(_AsyncResource):
         id: str,
         *,
         name: str | None = None,
-        image_url: str | None = None,
+        image_url: str | None | None = None,
         client_secret: str | None = None,
         _request_options: RequestOptions | None = None,
     ) -> models.UpdateAppResponse:
@@ -1709,7 +1765,7 @@ class AsyncNotificationsResource(_AsyncResource):
         channel: models.CreateNotificationChannel | str,
         event_types: Sequence[models.CreateNotificationEventTypes | str],
         *,
-        profile_id: str | None = None,
+        profile_id: str | None | None = None,
         only_scheduled_posts: bool | None = None,
         enabled: bool | None = None,
         webhook: models.CreateNotificationWebhook | Mapping[str, Any] | None = None,
@@ -1799,7 +1855,7 @@ class AsyncNotificationsResource(_AsyncResource):
         self,
         channel: models.TestNotificationChannel | str,
         *,
-        profile_id: str | None = None,
+        profile_id: str | None | None = None,
         webhook: models.TestNotificationWebhook | Mapping[str, Any] | None = None,
         email: models.TestNotificationEmail | Mapping[str, Any] | None = None,
         _request_options: RequestOptions | None = None,
@@ -1823,7 +1879,7 @@ class AsyncNotificationsResource(_AsyncResource):
         self,
         id: str,
         *,
-        profile_id: str | None = None,
+        profile_id: str | None | None = None,
         event_types: Sequence[models.UpdateNotificationEventTypes | str] | None = None,
         only_scheduled_posts: bool | None = None,
         enabled: bool | None = None,

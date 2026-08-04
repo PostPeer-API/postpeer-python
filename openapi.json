@@ -440,7 +440,7 @@
       },
       "InstagramConfigurations": {
         "additionalProperties": false,
-        "description": "Pass this object in platformSpecificData when posting to Instagram. Use contentType to publish Stories; the remaining fields customize Reels.",
+        "description": "Pass this object in platformSpecificData when posting to Instagram. Use contentType to publish Stories; the remaining fields customize feed posts and Reels.",
         "type": "object",
         "properties": {
           "contentType": {
@@ -463,6 +463,20 @@
             "minimum": 0,
             "description": "Video-only. Timestamp in milliseconds Instagram extracts as the cover frame. Ignored when coverUrl is set or for image posts.",
             "type": "integer"
+          },
+          "collaborators": {
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "description": "Feed posts, carousels, and Reels only. Up to three Instagram usernames to invite as collaborators. Each account must accept the invitation in Instagram.",
+            "type": "array",
+            "items": {
+              "minLength": 1,
+              "maxLength": 30,
+              "pattern": "^[A-Za-z0-9._]+$",
+              "description": "Instagram username without the leading @.",
+              "type": "string"
+            }
           }
         }
       },
@@ -1170,6 +1184,8 @@
                           "appId",
                           "app",
                           "byok",
+                          "authStatus",
+                          "authFailureReason",
                           "createdAt"
                         ],
                         "properties": {
@@ -1254,6 +1270,55 @@
                           "byok": {
                             "description": "True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.",
                             "type": "boolean"
+                          },
+                          "authStatus": {
+                            "description": "Whether this integration can authenticate or needs OAuth reconnection",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "active"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "reconnect_required"
+                                ]
+                              }
+                            ]
+                          },
+                          "authFailureReason": {
+                            "description": "Stable reason reconnection is required, or null while active",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "token_expired"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "access_revoked"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "security_invalidation"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "refresh_rejected"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "createdAt": {
                             "format": "date-time",
@@ -1503,6 +1568,8 @@
                           "appId",
                           "app",
                           "byok",
+                          "authStatus",
+                          "authFailureReason",
                           "createdAt"
                         ],
                         "properties": {
@@ -1587,6 +1654,55 @@
                           "byok": {
                             "description": "True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.",
                             "type": "boolean"
+                          },
+                          "authStatus": {
+                            "description": "Whether this integration can authenticate or needs OAuth reconnection",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "active"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "reconnect_required"
+                                ]
+                              }
+                            ]
+                          },
+                          "authFailureReason": {
+                            "description": "Stable reason reconnection is required, or null while active",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "token_expired"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "access_revoked"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "security_invalidation"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "refresh_rejected"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "createdAt": {
                             "format": "date-time",
@@ -1952,7 +2068,7 @@
             "in": "query",
             "name": "q",
             "required": false,
-            "description": "Case-insensitive search across the connected account name (displayName), username, and platform user ID."
+            "description": "Case-insensitive search across the connected account name (displayName), username, and platform user ID. A complete integration ID is also matched exactly."
           },
           {
             "schema": {
@@ -2028,6 +2144,8 @@
                           "appId",
                           "app",
                           "byok",
+                          "authStatus",
+                          "authFailureReason",
                           "createdAt"
                         ],
                         "properties": {
@@ -2113,6 +2231,55 @@
                             "description": "True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.",
                             "type": "boolean"
                           },
+                          "authStatus": {
+                            "description": "Whether this integration can authenticate or needs OAuth reconnection",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "active"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "reconnect_required"
+                                ]
+                              }
+                            ]
+                          },
+                          "authFailureReason": {
+                            "description": "Stable reason reconnection is required, or null while active",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "token_expired"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "access_revoked"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "security_invalidation"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "refresh_rejected"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "createdAt": {
                             "format": "date-time",
                             "type": "string"
@@ -2184,6 +2351,8 @@
                             "appId",
                             "app",
                             "byok",
+                            "authStatus",
+                            "authFailureReason",
                             "createdAt"
                           ],
                           "properties": {
@@ -2269,6 +2438,55 @@
                               "description": "True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.",
                               "type": "boolean"
                             },
+                            "authStatus": {
+                              "description": "Whether this integration can authenticate or needs OAuth reconnection",
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "active"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "reconnect_required"
+                                  ]
+                                }
+                              ]
+                            },
+                            "authFailureReason": {
+                              "description": "Stable reason reconnection is required, or null while active",
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "token_expired"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "access_revoked"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "security_invalidation"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "refresh_rejected"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
                             "createdAt": {
                               "format": "date-time",
                               "type": "string"
@@ -2308,7 +2526,9 @@
                               "type": "object",
                               "required": [
                                 "valid",
-                                "autoRefreshes"
+                                "autoRefreshes",
+                                "reconnectRequired",
+                                "reason"
                               ],
                               "properties": {
                                 "valid": {
@@ -2318,6 +2538,41 @@
                                 "autoRefreshes": {
                                   "description": "Whether PostPeer automatically refreshes this platform token when needed.",
                                   "type": "boolean"
+                                },
+                                "reconnectRequired": {
+                                  "description": "Whether this integration must complete OAuth again",
+                                  "type": "boolean"
+                                },
+                                "reason": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "token_expired"
+                                      ]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "access_revoked"
+                                      ]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "security_invalidation"
+                                      ]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "refresh_rejected"
+                                      ]
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 }
                               }
                             },
@@ -2335,6 +2590,282 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "moveIntegration",
+        "summary": "Move an integration to another profile",
+        "tags": [
+          "Connect"
+        ],
+        "description": "Reassigns an existing integration to another profile in the same project. Pass profileId=null to leave the integration unassigned. OAuth credentials and existing posts are unchanged.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "profileId"
+                ],
+                "properties": {
+                  "profileId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Destination profile ID. Pass null to remove the integration from its current profile."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Integration ID"
+          }
+        ],
+        "security": [
+          {
+            "accessKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "integration"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "integration": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "platform",
+                        "platformUserId",
+                        "username",
+                        "displayName",
+                        "profileUrl",
+                        "imageUrl",
+                        "profileId",
+                        "appId",
+                        "app",
+                        "byok",
+                        "authStatus",
+                        "authFailureReason",
+                        "createdAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "description": "Use this as accountId when creating posts",
+                          "type": "string"
+                        },
+                        "platform": {
+                          "type": "string",
+                          "enum": [
+                            "twitter",
+                            "instagram",
+                            "youtube",
+                            "tiktok",
+                            "pinterest",
+                            "linkedin",
+                            "bluesky",
+                            "facebook",
+                            "threads",
+                            "googlebusiness"
+                          ]
+                        },
+                        "platformUserId": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "The user ID on the platform, or null if not yet retrieved"
+                        },
+                        "username": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "The public username or handle, including @ for handle-based platforms"
+                        },
+                        "displayName": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Human-readable display name of the connected account"
+                        },
+                        "profileUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "description": "Public profile/page URL for the connected account, when it can be derived"
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "description": "Profile image URL for the connected account, or null if unavailable"
+                        },
+                        "platformMetadata": {
+                          "type": "object",
+                          "additionalProperties": true,
+                          "description": "Provider-specific public metadata for this connected account."
+                        },
+                        "profileId": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                        },
+                        "appId": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "The OAuth app (customer's own OAuth app) this integration was connected under, or null if postpeer's system app was used."
+                        },
+                        "app": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "imageUrl": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "description": "The OAuth app metadata for BYOK integrations, or null when postpeer system app was used."
+                        },
+                        "byok": {
+                          "description": "True when this integration was connected under the customer's own OAuth app (Bring Your Own Keys), i.e. appId is set. False when postpeer's system app is used.",
+                          "type": "boolean"
+                        },
+                        "authStatus": {
+                          "description": "Whether this integration can authenticate or needs OAuth reconnection",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "active"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "reconnect_required"
+                              ]
+                            }
+                          ]
+                        },
+                        "authFailureReason": {
+                          "description": "Stable reason reconnection is required, or null while active",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "token_expired"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "access_revoked"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "security_invalidation"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "refresh_rejected"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "createdAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
