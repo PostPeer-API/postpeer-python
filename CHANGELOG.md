@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+- Add comment listing, creation, replies, hiding, unhiding, and deletion on
+  supported Facebook, Instagram, and Threads accounts.
+- Add Instagram conversation listing, message retrieval, and DM replies.
+
 ## 0.1.3
 
 - Add `connect.integrations.move(...)` for assigning an integration to a profile

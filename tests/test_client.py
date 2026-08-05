@@ -68,7 +68,7 @@ def test_reads_api_key_from_environment_and_returns_model(
     assert isinstance(response, HealthCheckResponse)
     assert response.ok is True
     assert requests[0].headers["x-access-key"] == "env-key"
-    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.3"
+    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.4"
     assert requests[0].url == "https://api.postpeer.dev/v1/health"
     client.close()
     assert not raw.is_closed
@@ -108,6 +108,8 @@ def test_resource_structure_and_sync_async_parity() -> None:
         (sync.connect.integrations.get, asynchronous.connect.integrations.get),
         (sync.connect.integrations.list, asynchronous.connect.integrations.list),
         (sync.connect.integrations.move, asynchronous.connect.integrations.move),
+        (sync.comments.create, asynchronous.comments.create),
+        (sync.messages.send, asynchronous.messages.send),
         (sync.ai.generate_image, asynchronous.ai.generate_image),
     ]
 
@@ -236,6 +238,44 @@ def test_edit_scheduled_post_with_instagram_story_config() -> None:
             }
         ],
     }
+
+
+def test_comment_creation_and_conversation_message_requests() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.method == "POST":
+            return json_response(request, {"success": True, "commentId": "comment_123"})
+        return json_response(
+            request,
+            {"success": True, "messages": [], "nextCursor": None},
+        )
+
+    client = sync_client(handler)
+    comment = client.comments.create(
+        platform="instagram",
+        account_id="account_123",
+        post_id="post_123",
+        text="Thanks!",
+    )
+    messages = client.messages.get(
+        platform="instagram",
+        account_id="account_123",
+        conversation_id="conversation/123",
+    )
+
+    assert comment.comment_id == "comment_123"
+    assert json.loads(requests[0].read()) == {
+        "platform": "instagram",
+        "accountId": "account_123",
+        "postId": "post_123",
+        "text": "Thanks!",
+    }
+    assert messages.messages == []
+    assert requests[1].url.raw_path.split(b"?", 1)[0].endswith(b"/messages/conversation%2F123")
+    assert requests[1].url.params["platform"] == "instagram"
+    assert requests[1].url.params["accountId"] == "account_123"
 
 
 def test_typed_api_error_preserves_context() -> None:

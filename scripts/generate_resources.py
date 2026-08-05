@@ -64,6 +64,13 @@ OPERATION_PATHS: dict[str, tuple[str, ...]] = {
     "getTikTokCreatorInfo": ("tiktok", "get_creator_info"),
     "aiWriteContent": ("ai", "write"),
     "aiGenerateImage": ("ai", "generate_image"),
+    "listComments": ("comments", "list"),
+    "createComment": ("comments", "create"),
+    "deleteComment": ("comments", "delete"),
+    "hideComment": ("comments", "hide"),
+    "listConversations": ("messages", "list"),
+    "getConversationMessages": ("messages", "get"),
+    "sendMessage": ("messages", "send"),
 }
 
 # The API currently omits a success response for this operation. Keeping this

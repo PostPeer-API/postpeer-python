@@ -1022,6 +1022,192 @@ class SyncAnalyticsResource(_SyncResource):
         )
 
 
+class SyncCommentsResource(_SyncResource):
+    def create(
+        self,
+        platform: models.CreateCommentPlatform | str,
+        account_id: str,
+        text: str,
+        *,
+        post_id: str | None = None,
+        comment_id: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.CreateCommentResponse:
+        """Create a comment or reply"""
+        path = '/v1/comments/'
+        query = None
+        body = models.CreateCommentBody.model_validate(
+            {'platform': platform, 'accountId': account_id, 'postId': post_id, 'commentId': comment_id, 'text': text}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return self._transport.request(
+            'POST',
+            path,
+            response_model=models.CreateCommentResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def delete(
+        self,
+        platform: models.DeleteCommentPlatform | str,
+        account_id: str,
+        comment_id: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.DeleteCommentResponse:
+        """Delete a comment"""
+        path_values = models.DeleteCommentPath.model_validate(
+            {'commentId': comment_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/comments/{commentId}'
+        path = path.replace('{commentId}', quote(str(path_values['commentId']), safe=''))
+        query = models.DeleteCommentQuery.model_validate(
+            {'platform': platform, 'accountId': account_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return self._transport.request(
+            'DELETE',
+            path,
+            response_model=models.DeleteCommentResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def hide(
+        self,
+        comment_id: str,
+        platform: models.HideCommentPlatform | str,
+        account_id: str,
+        hidden: bool,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.HideCommentResponse:
+        """Hide or unhide a comment"""
+        path_values = models.HideCommentPath.model_validate(
+            {'commentId': comment_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/comments/{commentId}'
+        path = path.replace('{commentId}', quote(str(path_values['commentId']), safe=''))
+        query = None
+        body = models.HideCommentBody.model_validate(
+            {'platform': platform, 'accountId': account_id, 'hidden': hidden}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return self._transport.request(
+            'PATCH',
+            path,
+            response_model=models.HideCommentResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def list(
+        self,
+        platform: models.ListCommentsPlatform | str,
+        account_id: str,
+        post_id: str,
+        *,
+        limit: int | None = None,
+        after: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.ListCommentsResponse:
+        """List comments on a post"""
+        path = '/v1/comments/'
+        query = models.ListCommentsQuery.model_validate(
+            {'platform': platform, 'accountId': account_id, 'postId': post_id, 'limit': limit, 'after': after}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.ListCommentsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
+class SyncMessagesResource(_SyncResource):
+    def get(
+        self,
+        platform: models.GetConversationMessagesPlatform | str,
+        account_id: str,
+        conversation_id: str,
+        *,
+        limit: int | None = None,
+        after: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetConversationMessagesResponse:
+        """Get messages in a conversation"""
+        path_values = models.GetConversationMessagesPath.model_validate(
+            {'conversationId': conversation_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/messages/{conversationId}'
+        path = path.replace('{conversationId}', quote(str(path_values['conversationId']), safe=''))
+        query = models.GetConversationMessagesQuery.model_validate(
+            {'platform': platform, 'accountId': account_id, 'limit': limit, 'after': after}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetConversationMessagesResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def list(
+        self,
+        platform: models.ListConversationsPlatform | str,
+        account_id: str,
+        *,
+        limit: int | None = None,
+        after: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.ListConversationsResponse:
+        """List conversations"""
+        path = '/v1/messages/'
+        query = models.ListConversationsQuery.model_validate(
+            {'platform': platform, 'accountId': account_id, 'limit': limit, 'after': after}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.ListConversationsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def send(
+        self,
+        platform: models.SendMessagePlatform | str,
+        account_id: str,
+        recipient_id: str,
+        text: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.SendMessageResponse:
+        """Send a message"""
+        path = '/v1/messages/'
+        query = None
+        body = models.SendMessageBody.model_validate(
+            {'platform': platform, 'accountId': account_id, 'recipientId': recipient_id, 'text': text}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return self._transport.request(
+            'POST',
+            path,
+            response_model=models.SendMessageResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
 class SyncUsageResource(_SyncResource):
     def get(
         self,
@@ -1159,6 +1345,10 @@ class SyncPostPeerResources(_SyncResource):
         return SyncAppsResource(self._transport)
 
     @cached_property
+    def comments(self) -> SyncCommentsResource:
+        return SyncCommentsResource(self._transport)
+
+    @cached_property
     def connect(self) -> SyncConnectResource:
         return SyncConnectResource(self._transport)
 
@@ -1169,6 +1359,10 @@ class SyncPostPeerResources(_SyncResource):
     @cached_property
     def media(self) -> SyncMediaResource:
         return SyncMediaResource(self._transport)
+
+    @cached_property
+    def messages(self) -> SyncMessagesResource:
+        return SyncMessagesResource(self._transport)
 
     @cached_property
     def notifications(self) -> SyncNotificationsResource:
@@ -2199,6 +2393,192 @@ class AsyncAnalyticsResource(_AsyncResource):
         )
 
 
+class AsyncCommentsResource(_AsyncResource):
+    async def create(
+        self,
+        platform: models.CreateCommentPlatform | str,
+        account_id: str,
+        text: str,
+        *,
+        post_id: str | None = None,
+        comment_id: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.CreateCommentResponse:
+        """Create a comment or reply"""
+        path = '/v1/comments/'
+        query = None
+        body = models.CreateCommentBody.model_validate(
+            {'platform': platform, 'accountId': account_id, 'postId': post_id, 'commentId': comment_id, 'text': text}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return await self._transport.request(
+            'POST',
+            path,
+            response_model=models.CreateCommentResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def delete(
+        self,
+        platform: models.DeleteCommentPlatform | str,
+        account_id: str,
+        comment_id: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.DeleteCommentResponse:
+        """Delete a comment"""
+        path_values = models.DeleteCommentPath.model_validate(
+            {'commentId': comment_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/comments/{commentId}'
+        path = path.replace('{commentId}', quote(str(path_values['commentId']), safe=''))
+        query = models.DeleteCommentQuery.model_validate(
+            {'platform': platform, 'accountId': account_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return await self._transport.request(
+            'DELETE',
+            path,
+            response_model=models.DeleteCommentResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def hide(
+        self,
+        comment_id: str,
+        platform: models.HideCommentPlatform | str,
+        account_id: str,
+        hidden: bool,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.HideCommentResponse:
+        """Hide or unhide a comment"""
+        path_values = models.HideCommentPath.model_validate(
+            {'commentId': comment_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/comments/{commentId}'
+        path = path.replace('{commentId}', quote(str(path_values['commentId']), safe=''))
+        query = None
+        body = models.HideCommentBody.model_validate(
+            {'platform': platform, 'accountId': account_id, 'hidden': hidden}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return await self._transport.request(
+            'PATCH',
+            path,
+            response_model=models.HideCommentResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def list(
+        self,
+        platform: models.ListCommentsPlatform | str,
+        account_id: str,
+        post_id: str,
+        *,
+        limit: int | None = None,
+        after: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.ListCommentsResponse:
+        """List comments on a post"""
+        path = '/v1/comments/'
+        query = models.ListCommentsQuery.model_validate(
+            {'platform': platform, 'accountId': account_id, 'postId': post_id, 'limit': limit, 'after': after}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.ListCommentsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
+class AsyncMessagesResource(_AsyncResource):
+    async def get(
+        self,
+        platform: models.GetConversationMessagesPlatform | str,
+        account_id: str,
+        conversation_id: str,
+        *,
+        limit: int | None = None,
+        after: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetConversationMessagesResponse:
+        """Get messages in a conversation"""
+        path_values = models.GetConversationMessagesPath.model_validate(
+            {'conversationId': conversation_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/messages/{conversationId}'
+        path = path.replace('{conversationId}', quote(str(path_values['conversationId']), safe=''))
+        query = models.GetConversationMessagesQuery.model_validate(
+            {'platform': platform, 'accountId': account_id, 'limit': limit, 'after': after}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetConversationMessagesResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def list(
+        self,
+        platform: models.ListConversationsPlatform | str,
+        account_id: str,
+        *,
+        limit: int | None = None,
+        after: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.ListConversationsResponse:
+        """List conversations"""
+        path = '/v1/messages/'
+        query = models.ListConversationsQuery.model_validate(
+            {'platform': platform, 'accountId': account_id, 'limit': limit, 'after': after}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.ListConversationsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def send(
+        self,
+        platform: models.SendMessagePlatform | str,
+        account_id: str,
+        recipient_id: str,
+        text: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.SendMessageResponse:
+        """Send a message"""
+        path = '/v1/messages/'
+        query = None
+        body = models.SendMessageBody.model_validate(
+            {'platform': platform, 'accountId': account_id, 'recipientId': recipient_id, 'text': text}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return await self._transport.request(
+            'POST',
+            path,
+            response_model=models.SendMessageResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
 class AsyncUsageResource(_AsyncResource):
     async def get(
         self,
@@ -2336,6 +2716,10 @@ class AsyncPostPeerResources(_AsyncResource):
         return AsyncAppsResource(self._transport)
 
     @cached_property
+    def comments(self) -> AsyncCommentsResource:
+        return AsyncCommentsResource(self._transport)
+
+    @cached_property
     def connect(self) -> AsyncConnectResource:
         return AsyncConnectResource(self._transport)
 
@@ -2346,6 +2730,10 @@ class AsyncPostPeerResources(_AsyncResource):
     @cached_property
     def media(self) -> AsyncMediaResource:
         return AsyncMediaResource(self._transport)
+
+    @cached_property
+    def messages(self) -> AsyncMessagesResource:
+        return AsyncMessagesResource(self._transport)
 
     @cached_property
     def notifications(self) -> AsyncNotificationsResource:
