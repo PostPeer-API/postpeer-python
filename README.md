@@ -96,6 +96,30 @@ client.apps.list()
 client.notifications.list()
 client.platforms.list()
 
+client.comments.list(platform="instagram", account_id="...", post_id="...")
+client.comments.create(
+    platform="instagram",
+    account_id="...",
+    post_id="...",
+    text="Thanks!",
+)
+client.comments.hide(
+    comment_id="...",
+    platform="instagram",
+    account_id="...",
+    hidden=True,
+)
+client.comments.delete(platform="instagram", account_id="...", comment_id="...")
+
+client.messages.list(platform="instagram", account_id="...")
+client.messages.get(platform="instagram", account_id="...", conversation_id="...")
+client.messages.send(
+    platform="instagram",
+    account_id="...",
+    recipient_id="...",
+    text="Hello!",
+)
+
 client.posts.create(content="Hello", platforms=[...], publish_now=True)
 client.posts.list(status="scheduled")
 client.posts.get(post_id="...")

@@ -16,9 +16,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_every_openapi_operation_has_one_resource_mapping() -> None:
     operations = load_operations(json.loads((ROOT / "openapi.json").read_text()))
 
-    assert len(operations) == 44
+    assert len(operations) == 51
     assert {operation.operation_id for operation in operations} == set(OPERATION_PATHS)
-    assert len({operation.resource_path for operation in operations}) == 44
+    assert len({operation.resource_path for operation in operations}) == 51
 
 
 @pytest.mark.asyncio

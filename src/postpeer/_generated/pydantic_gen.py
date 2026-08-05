@@ -2426,6 +2426,229 @@ class GetAnalyticsResponse(RootModel[Union[GetAnalytics, GetAnalytics_]]):
     root: Union[GetAnalytics, GetAnalytics_] = Field(..., description="Single-post response (when postId is supplied) or paginated list response.")
 
 
+class ListCommentsPlatform(str, Enum):
+    """Platform to fetch comments from."""
+
+    FACEBOOK = "facebook"
+    INSTAGRAM = "instagram"
+    THREADS = "threads"
+
+
+class ListCommentsQuery(BaseModel):
+    platform: ListCommentsPlatform = Field(..., description="Platform to fetch comments from.")
+    account_id: str = Field(..., alias="accountId", description="Integration ID of the connected account.")
+    post_id: str = Field(..., alias="postId", description="Platform post ID to fetch comments for.")
+    limit: Optional[Annotated[int, Field(ge=1, le=100)]] = Field(default=25, description="Max comments to return.")
+    after: Optional[str] = Field(default=None, description="Pagination cursor from a previous response.")
+
+
+class ListCommentsCommentsAuthor(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+
+
+class ListCommentsCommentsRepliesAuthor(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+
+
+class ListCommentsCommentsReplies(BaseModel):
+    id: str
+    text: Optional[str] = None
+    author: ListCommentsCommentsRepliesAuthor
+    timestamp: Optional[str] = None
+    like_count: Optional[float] = Field(default=None, alias="likeCount")
+
+
+class ListCommentsComments(BaseModel):
+    id: str = Field(..., description="Platform comment ID")
+    text: Optional[str] = None
+    author: ListCommentsCommentsAuthor
+    timestamp: Optional[datetime] = None
+    like_count: Optional[float] = Field(default=None, alias="likeCount")
+    hidden: Optional[bool] = None
+    replies: Optional[list[ListCommentsCommentsReplies]] = None
+
+
+class ListCommentsResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    comments: list[ListCommentsComments]
+    next_cursor: Optional[str] = Field(default=None, alias="nextCursor", description="Pass as `after` in the next request to paginate.")
+
+
+class CreateCommentPlatform(str, Enum):
+    """Platform to post the comment on."""
+
+    FACEBOOK = "facebook"
+    INSTAGRAM = "instagram"
+    THREADS = "threads"
+
+
+class CreateCommentBody(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: CreateCommentPlatform = Field(..., description="Platform to post the comment on.")
+    account_id: str = Field(..., alias="accountId", description="Integration ID.")
+    post_id: Optional[str] = Field(default=None, alias="postId", description="Platform post/media ID. Provide this to create a top-level comment on Instagram or Facebook, or a top-level post on Threads.")
+    comment_id: Optional[str] = Field(default=None, alias="commentId", description="Platform comment ID to reply to. Provide this to reply to an existing comment.")
+    text: Annotated[str, Field(min_length=1)] = Field(..., description="Comment text.")
+
+
+class CreateCommentResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    comment_id: str = Field(..., alias="commentId", description="ID of the created comment or reply.")
+
+
+class DeleteCommentPath(BaseModel):
+    comment_id: str = Field(..., alias="commentId", description="Platform comment ID to delete.")
+
+
+class DeleteCommentPlatform(str, Enum):
+    FACEBOOK = "facebook"
+    INSTAGRAM = "instagram"
+    THREADS = "threads"
+
+
+class DeleteCommentQuery(BaseModel):
+    platform: DeleteCommentPlatform
+    account_id: str = Field(..., alias="accountId", description="Integration ID.")
+
+
+class DeleteCommentResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+
+
+class HideCommentPlatform(str, Enum):
+    FACEBOOK = "facebook"
+    INSTAGRAM = "instagram"
+    THREADS = "threads"
+
+
+class HideCommentBody(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: HideCommentPlatform
+    account_id: str = Field(..., alias="accountId", description="Integration ID.")
+    hidden: bool = Field(..., description="true to hide, false to unhide.")
+
+
+class HideCommentPath(BaseModel):
+    comment_id: str = Field(..., alias="commentId", description="Platform comment ID to delete.")
+
+
+class HideCommentResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+
+
+class ListConversationsPlatform(str, Enum):
+    """Platform to fetch conversations from."""
+
+    INSTAGRAM = "instagram"
+
+
+class ListConversationsQuery(BaseModel):
+    platform: ListConversationsPlatform = Field(..., description="Platform to fetch conversations from.")
+    account_id: str = Field(..., alias="accountId", description="Integration ID of the connected account.")
+    limit: Optional[Annotated[int, Field(ge=1, le=100)]] = Field(default=20, description="Max conversations to return.")
+    after: Optional[str] = Field(default=None, description="Pagination cursor from a previous response.")
+
+
+class ListConversationsConversationsParticipants(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    username: Optional[str] = None
+    profile_picture_url: Optional[str] = Field(default=None, alias="profilePictureUrl", description="Temporary Instagram profile picture URL.")
+
+
+class ListConversationsConversationsLastMessageFrom(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+
+
+class ListConversationsConversationsLastMessage(BaseModel):
+    id: str = Field(..., description="Platform message ID")
+    text: Optional[str] = None
+    from_: ListConversationsConversationsLastMessageFrom = Field(..., alias="from")
+    timestamp: Optional[datetime] = None
+
+
+class ListConversationsConversations(BaseModel):
+    id: str = Field(..., description="Platform conversation ID")
+    participants: list[ListConversationsConversationsParticipants]
+    last_message: Optional[ListConversationsConversationsLastMessage] = Field(default=None, alias="lastMessage", description="Most recent message in the conversation.")
+    updated_time: Optional[datetime] = Field(default=None, alias="updatedTime")
+
+
+class ListConversationsResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    self_id: str = Field(..., alias="selfId", description="Participant ID of the connected account in conversations.")
+    self_username: Optional[str] = Field(default=None, alias="selfUsername", description="Username of the connected account.")
+    conversations: list[ListConversationsConversations]
+    next_cursor: Optional[str] = Field(default=None, alias="nextCursor", description="Pass as `after` in the next request to paginate.")
+
+
+class SendMessagePlatform(str, Enum):
+    INSTAGRAM = "instagram"
+
+
+class SendMessageBody(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    platform: SendMessagePlatform
+    account_id: str = Field(..., alias="accountId", description="Integration ID.")
+    recipient_id: str = Field(..., alias="recipientId", description="Platform ID of the recipient.")
+    text: Annotated[str, Field(min_length=1)] = Field(..., description="Message text.")
+
+
+class SendMessageResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    message_id: str = Field(..., alias="messageId", description="ID of the sent message.")
+
+
+class GetConversationMessagesPath(BaseModel):
+    conversation_id: str = Field(..., alias="conversationId", description="Platform conversation ID.")
+
+
+class GetConversationMessagesPlatform(str, Enum):
+    INSTAGRAM = "instagram"
+
+
+class GetConversationMessagesQuery(BaseModel):
+    platform: GetConversationMessagesPlatform
+    account_id: str = Field(..., alias="accountId", description="Integration ID.")
+    limit: Optional[Annotated[int, Field(ge=1, le=100)]] = 25
+    after: Optional[str] = None
+
+
+class GetConversationMessagesMessagesFrom(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+
+
+class GetConversationMessagesMessages(BaseModel):
+    id: str = Field(..., description="Platform message ID")
+    text: Optional[str] = None
+    from_: GetConversationMessagesMessagesFrom = Field(..., alias="from")
+    timestamp: Optional[datetime] = None
+
+
+class GetConversationMessagesResponse(BaseModel):
+    """Default Response"""
+
+    success: bool
+    messages: list[GetConversationMessagesMessages]
+    next_cursor: Optional[str] = Field(default=None, alias="nextCursor")
+
+
 class GetUsageQuery(BaseModel):
     profile_id: Optional[str] = Field(default=None, alias="profileId", description="Return usage for this profile only. Mutually exclusive with integrationId.")
     integration_id: Optional[str] = Field(default=None, alias="integrationId", description="Return usage for this integration only. Mutually exclusive with profileId.")
