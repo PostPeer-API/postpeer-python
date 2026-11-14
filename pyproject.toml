@@ -1,6 +1,6 @@
 [project]
 name = "postpeer"
-version = "0.1.4"
+version = "0.1.5"
 description = "The official Python SDK for the PostPeer API"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -49,6 +49,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/postpeer"]
+core-metadata-version = "2.4"
+
+[tool.hatch.build.targets.sdist]
+core-metadata-version = "2.4"
 
 [tool.pytest.ini_options]
 addopts = "--cov=postpeer --cov-report=term-missing --strict-markers"
@@ -75,7 +79,7 @@ select = ["B", "E", "F", "I", "UP"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/postpeer/_generated/*" = ["E501", "UP"]
+"src/postpeer/_generated/*" = ["E501", "I", "UP"]
 "src/postpeer/resources/_generated.py" = ["E501"]
 
 [tool.ruff.format]

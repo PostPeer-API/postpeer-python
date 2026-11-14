@@ -250,7 +250,7 @@
             "type": "boolean"
           },
           "isAigc": {
-            "description": "AI-generated content disclosure. Videos only. Defaults to false.",
+            "description": "AI-generated content disclosure for photo and video posts. Defaults to false.",
             "type": "boolean"
           },
           "videoCoverTimestampMs": {
@@ -454,6 +454,24 @@
             "description": "Reels-only. When true (default), the Reel also appears in the account's main feed grid. Set false to publish to Reels only.",
             "type": "boolean"
           },
+          "trialParams": {
+            "additionalProperties": false,
+            "description": "Reels-only. Publishes a single video as a Trial Reel, initially shown to non-followers.",
+            "type": "object",
+            "required": [
+              "graduationStrategy"
+            ],
+            "properties": {
+              "graduationStrategy": {
+                "type": "string",
+                "enum": [
+                  "MANUAL",
+                  "SS_PERFORMANCE"
+                ],
+                "description": "Controls how a Trial Reel is shared with followers. MANUAL keeps graduation manual; SS_PERFORMANCE lets Instagram share it automatically when it performs well."
+              }
+            }
+          },
           "coverUrl": {
             "format": "uri",
             "description": "Video-only. Public URL of an image Instagram will use as the cover frame for the Reel/video post. Ignored for image posts.",
@@ -463,6 +481,12 @@
             "minimum": 0,
             "description": "Video-only. Timestamp in milliseconds Instagram extracts as the cover frame. Ignored when coverUrl is set or for image posts.",
             "type": "integer"
+          },
+          "audioName": {
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Reels-only. Sets the name shown for the Reel audio. Instagram does not allow selecting a track from its music library via the API, so the audio must already be in the video file; this only labels it.",
+            "type": "string"
           },
           "collaborators": {
             "minItems": 1,
@@ -619,6 +643,7 @@
             "description": "Target platform accounts to publish to",
             "type": "array",
             "items": {
+              "type": "object",
               "discriminator": {
                 "propertyName": "platform"
               },
@@ -908,6 +933,12 @@
           "timezone": {
             "description": "IANA timezone for the scheduled time (e.g. America/New_York). Defaults to UTC.",
             "type": "string"
+          },
+          "idempotencyKey": {
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional unique key to safely retry this request. If a post was already created with the same key for this project, the original result is returned instead of creating or publishing a duplicate. Scoped per project; reuse a fresh key for each distinct post.",
+            "type": "string"
           }
         }
       }
@@ -1186,6 +1217,7 @@
                           "byok",
                           "authStatus",
                           "authFailureReason",
+                          "insightsReadable",
                           "createdAt"
                         ],
                         "properties": {
@@ -1244,6 +1276,11 @@
                             "type": "string",
                             "nullable": true,
                             "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                          },
+                          "profileName": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Name of the profile (social group) this integration belongs to, or null when it has no profile. Only populated on the list endpoint so clients can label the group without fetching the full profiles list."
                           },
                           "appId": {
                             "type": "string",
@@ -1319,6 +1356,11 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "insightsReadable": {
+                            "type": "boolean",
+                            "nullable": true,
+                            "description": "Whether this account can read analytics/insights. null = not determined yet, true = readable, false = the account did not grant the insights permission (auth can still be active). Reconnect and approve the analytics permission to fix a false."
                           },
                           "createdAt": {
                             "format": "date-time",
@@ -1570,6 +1612,7 @@
                           "byok",
                           "authStatus",
                           "authFailureReason",
+                          "insightsReadable",
                           "createdAt"
                         ],
                         "properties": {
@@ -1628,6 +1671,11 @@
                             "type": "string",
                             "nullable": true,
                             "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                          },
+                          "profileName": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Name of the profile (social group) this integration belongs to, or null when it has no profile. Only populated on the list endpoint so clients can label the group without fetching the full profiles list."
                           },
                           "appId": {
                             "type": "string",
@@ -1703,6 +1751,11 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "insightsReadable": {
+                            "type": "boolean",
+                            "nullable": true,
+                            "description": "Whether this account can read analytics/insights. null = not determined yet, true = readable, false = the account did not grant the insights permission (auth can still be active). Reconnect and approve the analytics permission to fix a false."
                           },
                           "createdAt": {
                             "format": "date-time",
@@ -2146,6 +2199,7 @@
                           "byok",
                           "authStatus",
                           "authFailureReason",
+                          "insightsReadable",
                           "createdAt"
                         ],
                         "properties": {
@@ -2204,6 +2258,11 @@
                             "type": "string",
                             "nullable": true,
                             "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                          },
+                          "profileName": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Name of the profile (social group) this integration belongs to, or null when it has no profile. Only populated on the list endpoint so clients can label the group without fetching the full profiles list."
                           },
                           "appId": {
                             "type": "string",
@@ -2280,6 +2339,11 @@
                               }
                             ]
                           },
+                          "insightsReadable": {
+                            "type": "boolean",
+                            "nullable": true,
+                            "description": "Whether this account can read analytics/insights. null = not determined yet, true = readable, false = the account did not grant the insights permission (auth can still be active). Reconnect and approve the analytics permission to fix a false."
+                          },
                           "createdAt": {
                             "format": "date-time",
                             "type": "string"
@@ -2353,6 +2417,7 @@
                             "byok",
                             "authStatus",
                             "authFailureReason",
+                            "insightsReadable",
                             "createdAt"
                           ],
                           "properties": {
@@ -2411,6 +2476,11 @@
                               "type": "string",
                               "nullable": true,
                               "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                            },
+                            "profileName": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Name of the profile (social group) this integration belongs to, or null when it has no profile. Only populated on the list endpoint so clients can label the group without fetching the full profiles list."
                             },
                             "appId": {
                               "type": "string",
@@ -2487,6 +2557,11 @@
                                 }
                               ]
                             },
+                            "insightsReadable": {
+                              "type": "boolean",
+                              "nullable": true,
+                              "description": "Whether this account can read analytics/insights. null = not determined yet, true = readable, false = the account did not grant the insights permission (auth can still be active). Reconnect and approve the analytics permission to fix a false."
+                            },
                             "createdAt": {
                               "format": "date-time",
                               "type": "string"
@@ -2540,7 +2615,7 @@
                                   "type": "boolean"
                                 },
                                 "reconnectRequired": {
-                                  "description": "Whether this integration must complete OAuth again",
+                                  "description": "Whether this integration should complete OAuth again — either the token needs re-auth, or (Instagram/Threads) the insights permission is missing so analytics calls will fail until reconnected. `valid` can still be true when only insights are missing, since publishing works.",
                                   "type": "boolean"
                                 },
                                 "reason": {
@@ -2567,6 +2642,12 @@
                                       "type": "string",
                                       "enum": [
                                         "refresh_rejected"
+                                      ]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "insights_permission_missing"
                                       ]
                                     },
                                     {
@@ -2684,6 +2765,7 @@
                         "byok",
                         "authStatus",
                         "authFailureReason",
+                        "insightsReadable",
                         "createdAt"
                       ],
                       "properties": {
@@ -2742,6 +2824,11 @@
                           "type": "string",
                           "nullable": true,
                           "description": "Profile this integration belongs to, or null if it was connected without a profile"
+                        },
+                        "profileName": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Name of the profile (social group) this integration belongs to, or null when it has no profile. Only populated on the list endpoint so clients can label the group without fetching the full profiles list."
                         },
                         "appId": {
                           "type": "string",
@@ -2817,6 +2904,11 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "insightsReadable": {
+                          "type": "boolean",
+                          "nullable": true,
+                          "description": "Whether this account can read analytics/insights. null = not determined yet, true = readable, false = the account did not grant the insights permission (auth can still be active). Reconnect and approve the analytics permission to fix a false."
                         },
                         "createdAt": {
                           "format": "date-time",
@@ -4391,6 +4483,7 @@
         "tags": [
           "Notifications"
         ],
+        "description": "Create an email or webhook subscription. See the [webhook guide](/docs/webhooks) for request headers, payload fields, and signature verification.",
         "requestBody": {
           "required": true,
           "content": {
@@ -5437,6 +5530,7 @@
                     "description": "Target platform accounts to publish to",
                     "type": "array",
                     "items": {
+                      "type": "object",
                       "discriminator": {
                         "propertyName": "platform"
                       },
@@ -5725,6 +5819,12 @@
                   },
                   "timezone": {
                     "description": "IANA timezone for the scheduled time (e.g. America/New_York). Defaults to UTC.",
+                    "type": "string"
+                  },
+                  "idempotencyKey": {
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "Optional unique key to safely retry this request. If a post was already created with the same key for this project, the original result is returned instead of creating or publishing a duplicate. Scoped per project; reuse a fresh key for each distinct post.",
                     "type": "string"
                   }
                 }
@@ -6257,6 +6357,252 @@
             }
           },
           "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/posts/{postId}/retry": {
+      "post": {
+        "operationId": "retryPost",
+        "summary": "Retry the failed platforms of a post",
+        "tags": [
+          "Posts"
+        ],
+        "description": "Re-publish only the platform targets that failed on a post. Omit scheduledFor to retry immediately, or pass scheduledFor (ISO 8601) to schedule the retry. Retried platforms are charged credits (they were refunded when they failed) and refunded again if they fail. Already-published platforms are never re-posted.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "properties": {
+                  "scheduledFor": {
+                    "format": "date-time",
+                    "description": "Optional ISO 8601 time to schedule the retry. Omit to retry immediately.",
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "description": "IANA timezone for the scheduled retry (e.g. America/New_York). Defaults to UTC.",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "postId",
+            "required": true,
+            "description": "ID of the failed post to retry."
+          }
+        ],
+        "security": [
+          {
+            "accessKey": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "status",
+                    "postId",
+                    "platforms"
+                  ],
+                  "properties": {
+                    "success": {
+                      "description": "false only when every platform failed",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "pending",
+                        "scheduled",
+                        "publishing",
+                        "published",
+                        "failed",
+                        "partial"
+                      ]
+                    },
+                    "scheduledFor": {
+                      "format": "date-time",
+                      "description": "ISO 8601 datetime the post is scheduled for (only present for scheduled posts)",
+                      "type": "string"
+                    },
+                    "postId": {
+                      "description": "id of the saved Post document",
+                      "type": "string"
+                    },
+                    "platforms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "platform",
+                          "success"
+                        ],
+                        "properties": {
+                          "platform": {
+                            "type": "string",
+                            "enum": [
+                              "twitter",
+                              "instagram",
+                              "youtube",
+                              "tiktok",
+                              "pinterest",
+                              "linkedin",
+                              "bluesky",
+                              "facebook",
+                              "threads",
+                              "googlebusiness"
+                            ]
+                          },
+                          "success": {
+                            "description": "For publish-now timeout fallback, true means the platform target was accepted and final status is still pending.",
+                            "type": "boolean"
+                          },
+                          "platformPostUrl": {
+                            "description": "Direct URL to the published post",
+                            "type": "string"
+                          },
+                          "error": {
+                            "description": "Error message when success is false",
+                            "type": "string"
+                          },
+                          "warningMessage": {
+                            "description": "Warning message when the post published but a non-critical follow-up action failed",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -7153,6 +7499,7 @@
                     "description": "Replacement target platform accounts to publish to",
                     "type": "array",
                     "items": {
+                      "type": "object",
                       "discriminator": {
                         "propertyName": "platform"
                       },
@@ -7723,6 +8070,888 @@
         }
       }
     },
+    "/v1/analytics/instagram/follower-stats": {
+      "get": {
+        "operationId": "getInstagramFollowerStats",
+        "summary": "Get Instagram follower count",
+        "tags": [
+          "Analytics"
+        ],
+        "description": "Returns the connected Instagram professional account's live follower count. Historical growth requires daily snapshots and is not included. Each successful call costs 1 credit.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "accountId",
+            "required": true,
+            "description": "Integration ID for the connected Instagram account."
+          }
+        ],
+        "security": [
+          {
+            "accessKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "accountId",
+                    "platform",
+                    "currentFollowers",
+                    "fetchedAt"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "accountId": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "instagram"
+                      ]
+                    },
+                    "currentFollowers": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "Live follower count. null when Meta does not make the value available."
+                    },
+                    "fetchedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/instagram/account-insights": {
+      "get": {
+        "operationId": "getInstagramAccountInsights",
+        "summary": "Get Instagram account insights",
+        "tags": [
+          "Analytics"
+        ],
+        "description": "Returns account-wide Instagram insights across feed, stories, explore, and profile activity. The date range defaults to the last 30 days and cannot exceed 90 days. Only reach supports daily time-series output. Missing Meta metrics are omitted rather than reported as zero. Each successful call costs 1 credit.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "accountId",
+            "required": true,
+            "description": "Integration ID for the connected Instagram account."
+          },
+          {
+            "schema": {
+              "default": "reach,views,accounts_engaged,total_interactions",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "metrics",
+            "required": false,
+            "description": "Comma-separated account metrics. Valid metrics: reach, views, accounts_engaged, total_interactions, comments, likes, saves, shares, replies, reposts, follows_and_unfollows, profile_links_taps, profile_views."
+          },
+          {
+            "schema": {
+              "format": "date",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "description": "Start date (YYYY-MM-DD). Defaults to 30 days ago."
+          },
+          {
+            "schema": {
+              "format": "date",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "until",
+            "required": false,
+            "description": "End date (YYYY-MM-DD). Defaults to today."
+          },
+          {
+            "schema": {
+              "default": "total_value",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "total_value"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "time_series"
+                  ]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "metricType",
+            "required": false,
+            "description": "total_value returns an aggregate; time_series returns daily reach values."
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "media_product_type"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "follow_type"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "follower_type"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "contact_button_type"
+                  ]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "breakdown",
+            "required": false,
+            "description": "Optional Meta breakdown dimension. Only valid with metricType=total_value."
+          }
+        ],
+        "security": [
+          {
+            "accessKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "accountId",
+                    "platform",
+                    "dateRange",
+                    "metricType",
+                    "metrics",
+                    "dataDelay"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "accountId": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "instagram"
+                      ]
+                    },
+                    "dateRange": {
+                      "type": "object",
+                      "required": [
+                        "since",
+                        "until"
+                      ],
+                      "properties": {
+                        "since": {
+                          "format": "date",
+                          "type": "string"
+                        },
+                        "until": {
+                          "format": "date",
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "metricType": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "total_value"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "time_series"
+                          ]
+                        }
+                      ]
+                    },
+                    "metrics": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "total"
+                        ],
+                        "properties": {
+                          "total": {
+                            "type": "number"
+                          },
+                          "values": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "date",
+                                "value"
+                              ],
+                              "properties": {
+                                "date": {
+                                  "format": "date",
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "number"
+                                }
+                              }
+                            }
+                          },
+                          "breakdowns": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "dimensionKeys",
+                                "results"
+                              ],
+                              "properties": {
+                                "dimensionKeys": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "results": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "required": [
+                                      "dimensionValues",
+                                      "value"
+                                    ],
+                                    "properties": {
+                                      "dimensionValues": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "value": {
+                                        "type": "number"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "dataDelay": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/instagram/demographics": {
+      "get": {
+        "operationId": "getInstagramDemographics",
+        "summary": "Get Instagram demographics",
+        "tags": [
+          "Analytics"
+        ],
+        "description": "Returns Instagram follower, engaged-audience, or reached-audience demographics by age, city, country, and/or gender. Meta returns at most 45 entries per dimension, requires a sufficient audience, and may delay data by up to 48 hours. Each call costs 1 credit.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "accountId",
+            "required": true,
+            "description": "Integration ID for the connected Instagram account."
+          },
+          {
+            "schema": {
+              "default": "follower_demographics",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "follower_demographics"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "engaged_audience_demographics"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "reached_audience_demographics"
+                  ]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "metric",
+            "required": false,
+            "description": "Audience whose demographic data should be returned."
+          },
+          {
+            "schema": {
+              "default": "age,city,country,gender",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "breakdown",
+            "required": false,
+            "description": "Comma-separated demographic dimensions: age, city, country, gender. Defaults to all four."
+          },
+          {
+            "schema": {
+              "default": "this_month",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "this_week"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "this_month"
+                  ]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "timeframe",
+            "required": false,
+            "description": "Meta demographic timeframe. this_week covers the last 7 days; this_month covers the last 30 days."
+          }
+        ],
+        "security": [
+          {
+            "accessKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "accountId",
+                    "platform",
+                    "metric",
+                    "timeframe",
+                    "demographics",
+                    "note"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "accountId": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "instagram"
+                      ]
+                    },
+                    "metric": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "follower_demographics"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "engaged_audience_demographics"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "reached_audience_demographics"
+                          ]
+                        }
+                      ]
+                    },
+                    "timeframe": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "this_week"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "this_month"
+                          ]
+                        }
+                      ]
+                    },
+                    "demographics": {
+                      "type": "object",
+                      "properties": {
+                        "age": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "dimension",
+                              "value"
+                            ],
+                            "properties": {
+                              "dimension": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "city": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "dimension",
+                              "value"
+                            ],
+                            "properties": {
+                              "dimension": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "country": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "dimension",
+                              "value"
+                            ],
+                            "properties": {
+                              "dimension": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "gender": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "dimension",
+                              "value"
+                            ],
+                            "properties": {
+                              "dimension": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/analytics/": {
       "get": {
         "operationId": "getAnalytics",
@@ -7900,6 +9129,22 @@
                               "format": "date-time",
                               "nullable": true
                             },
+                            "mediaType": {
+                              "type": "string",
+                              "enum": [
+                                "image",
+                                "video",
+                                "reel",
+                                "carousel"
+                              ],
+                              "nullable": true,
+                              "description": "Normalized media type when the platform exposes it."
+                            },
+                            "thumbnailUrl": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Post thumbnail or representative media URL, if available."
+                            },
                             "aggregated": {
                               "type": "object",
                               "required": [
@@ -7950,6 +9195,21 @@
                                   "type": "number",
                                   "nullable": true,
                                   "description": "Engagement rate (0-1). null when the platform does not report engagement."
+                                },
+                                "avgWatchTime": {
+                                  "type": "number",
+                                  "nullable": true,
+                                  "description": "Instagram Reels only. Average watch time per view, in seconds. null for other media/platforms."
+                                },
+                                "totalWatchTime": {
+                                  "type": "number",
+                                  "nullable": true,
+                                  "description": "Instagram Reels only. Total watch time in seconds, including replays. Meta flags this metric as in development, so it may be null."
+                                },
+                                "skipRate": {
+                                  "type": "number",
+                                  "nullable": true,
+                                  "description": "Instagram Reels only. Reels skip rate as reported by Meta (reels_skip_rate, added Dec 2025) — the share of views that skipped past the reel. null for other media/platforms or when Meta has no value yet."
                                 }
                               }
                             },
@@ -8026,6 +9286,21 @@
                                         "type": "number",
                                         "nullable": true,
                                         "description": "Engagement rate (0-1). null when the platform does not report engagement."
+                                      },
+                                      "avgWatchTime": {
+                                        "type": "number",
+                                        "nullable": true,
+                                        "description": "Instagram Reels only. Average watch time per view, in seconds. null for other media/platforms."
+                                      },
+                                      "totalWatchTime": {
+                                        "type": "number",
+                                        "nullable": true,
+                                        "description": "Instagram Reels only. Total watch time in seconds, including replays. Meta flags this metric as in development, so it may be null."
+                                      },
+                                      "skipRate": {
+                                        "type": "number",
+                                        "nullable": true,
+                                        "description": "Instagram Reels only. Reels skip rate as reported by Meta (reels_skip_rate, added Dec 2025) — the share of views that skipped past the reel. null for other media/platforms or when Meta has no value yet."
                                       }
                                     }
                                   }
@@ -8097,6 +9372,22 @@
                                 "format": "date-time",
                                 "nullable": true
                               },
+                              "mediaType": {
+                                "type": "string",
+                                "enum": [
+                                  "image",
+                                  "video",
+                                  "reel",
+                                  "carousel"
+                                ],
+                                "nullable": true,
+                                "description": "Normalized media type when the platform exposes it."
+                              },
+                              "thumbnailUrl": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Post thumbnail or representative media URL, if available."
+                              },
                               "aggregated": {
                                 "type": "object",
                                 "required": [
@@ -8147,6 +9438,21 @@
                                     "type": "number",
                                     "nullable": true,
                                     "description": "Engagement rate (0-1). null when the platform does not report engagement."
+                                  },
+                                  "avgWatchTime": {
+                                    "type": "number",
+                                    "nullable": true,
+                                    "description": "Instagram Reels only. Average watch time per view, in seconds. null for other media/platforms."
+                                  },
+                                  "totalWatchTime": {
+                                    "type": "number",
+                                    "nullable": true,
+                                    "description": "Instagram Reels only. Total watch time in seconds, including replays. Meta flags this metric as in development, so it may be null."
+                                  },
+                                  "skipRate": {
+                                    "type": "number",
+                                    "nullable": true,
+                                    "description": "Instagram Reels only. Reels skip rate as reported by Meta (reels_skip_rate, added Dec 2025) — the share of views that skipped past the reel. null for other media/platforms or when Meta has no value yet."
                                   }
                                 }
                               },
@@ -8223,6 +9529,21 @@
                                           "type": "number",
                                           "nullable": true,
                                           "description": "Engagement rate (0-1). null when the platform does not report engagement."
+                                        },
+                                        "avgWatchTime": {
+                                          "type": "number",
+                                          "nullable": true,
+                                          "description": "Instagram Reels only. Average watch time per view, in seconds. null for other media/platforms."
+                                        },
+                                        "totalWatchTime": {
+                                          "type": "number",
+                                          "nullable": true,
+                                          "description": "Instagram Reels only. Total watch time in seconds, including replays. Meta flags this metric as in development, so it may be null."
+                                        },
+                                        "skipRate": {
+                                          "type": "number",
+                                          "nullable": true,
+                                          "description": "Instagram Reels only. Reels skip rate as reported by Meta (reels_skip_rate, added Dec 2025) — the share of views that skipped past the reel. null for other media/platforms or when Meta has no value yet."
                                         }
                                       }
                                     }
@@ -8525,7 +9846,73 @@
               }
             }
           },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -8652,6 +10039,28 @@
             }
           },
           "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -9353,6 +10762,28 @@
               }
             }
           },
+          "402": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "404": {
             "description": "Default Response",
             "content": {
@@ -9683,6 +11114,7 @@
                           "year",
                           "month",
                           "count",
+                          "purchasedCount",
                           "platform"
                         ],
                         "properties": {
@@ -9698,7 +11130,12 @@
                           },
                           "count": {
                             "minimum": 0,
-                            "description": "Credits used this month",
+                            "description": "Subscription (monthly plan) credits used this month",
+                            "type": "integer"
+                          },
+                          "purchasedCount": {
+                            "minimum": 0,
+                            "description": "One-time / credit-pack credits used this month",
                             "type": "integer"
                           },
                           "platform": {

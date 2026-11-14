@@ -124,6 +124,7 @@ client.posts.create(content="Hello", platforms=[...], publish_now=True)
 client.posts.list(status="scheduled")
 client.posts.get(post_id="...")
 client.posts.delete(post_id="...")
+client.posts.retry(post_id="...")
 client.posts.scheduled.list()
 client.posts.scheduled.edit(
     post_id="...",
@@ -134,6 +135,9 @@ client.posts.scheduled.cancel(post_id="...")
 
 client.media.upload(filename="image.png", mime_type="image/png")
 client.analytics.get()
+client.analytics.instagram.follower_stats(account_id="...")
+client.analytics.instagram.account_insights(account_id="...")
+client.analytics.instagram.demographics(account_id="...")
 client.usage.get()
 client.pinterest.get_boards(account_id="...")
 client.tiktok.get_creator_info(account_id="...")
@@ -145,6 +149,31 @@ Eligible X Premium accounts can opt into long posts with
 
 Instagram feed posts, carousels, and Reels can invite up to three collaborators
 with `platformSpecificData={"collaborators": ["username"]}`.
+
+Instagram Reels can be published as Trial Reels and given a custom audio label:
+
+```python
+client.posts.create(
+    content="Trying something new",
+    media_items=[{"url": "https://example.com/reel.mp4", "type": "video"}],
+    platforms=[
+        {
+            "platform": "instagram",
+            "accountId": "integration-id",
+            "platformSpecificData": {
+                "trialParams": {"graduationStrategy": "MANUAL"},
+                "audioName": "Original audio",
+            },
+        }
+    ],
+    publish_now=True,
+    idempotency_key="launch-reel-2026-11-14",
+)
+```
+
+Use a unique `idempotency_key` for each distinct post. Reusing the same key for
+the same project safely returns the original result instead of creating a
+duplicate post.
 
 Parameters use Python `snake_case`; the SDK serializes their OpenAPI aliases on
 the wire. Responses are validated Pydantic v2 models. All generated models and

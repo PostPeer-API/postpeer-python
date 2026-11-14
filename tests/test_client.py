@@ -27,7 +27,7 @@ from postpeer import (
     RequestOptions,
     UnprocessableEntityError,
 )
-from postpeer.types import CreatePostResponse, HealthCheckResponse
+from postpeer.types import CreatePostResponse, HealthCheckResponse, RetryPostResponse
 
 
 def json_response(
@@ -68,7 +68,7 @@ def test_reads_api_key_from_environment_and_returns_model(
     assert isinstance(response, HealthCheckResponse)
     assert response.ok is True
     assert requests[0].headers["x-access-key"] == "env-key"
-    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.4"
+    assert requests[0].headers["user-agent"] == "postpeer-python/0.1.5"
     assert requests[0].url == "https://api.postpeer.dev/v1/health"
     client.close()
     assert not raw.is_closed
@@ -101,6 +101,7 @@ def test_resource_structure_and_sync_async_parity() -> None:
     pairs = [
         (sync.health.check, asynchronous.health.check),
         (sync.posts.create, asynchronous.posts.create),
+        (sync.posts.retry, asynchronous.posts.retry),
         (sync.posts.scheduled.edit, asynchronous.posts.scheduled.edit),
         (sync.posts.scheduled.reschedule, asynchronous.posts.scheduled.reschedule),
         (sync.connect.facebook.get_selection, asynchronous.connect.facebook.get_selection),
@@ -111,6 +112,10 @@ def test_resource_structure_and_sync_async_parity() -> None:
         (sync.comments.create, asynchronous.comments.create),
         (sync.messages.send, asynchronous.messages.send),
         (sync.ai.generate_image, asynchronous.ai.generate_image),
+        (
+            sync.analytics.instagram.follower_stats,
+            asynchronous.analytics.instagram.follower_stats,
+        ),
     ]
 
     for sync_method, async_method in pairs:
@@ -158,6 +163,40 @@ def test_pythonic_arguments_are_serialized_to_wire_names() -> None:
         b'"accountId":"integration_123","platformSpecificData":'
         b'{"longPost":true}}],"publishNow":true}'
     )
+
+
+def test_retry_failed_post_can_be_scheduled() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return json_response(
+            request,
+            {
+                "success": True,
+                "status": "scheduled",
+                "scheduledFor": "2026-09-01T09:00:00Z",
+                "postId": "post/123",
+                "platforms": [{"platform": "instagram", "success": True}],
+            },
+            status=202,
+        )
+
+    client = sync_client(handler)
+    response = client.posts.retry(
+        post_id="post/123",
+        scheduled_for="2026-09-01T09:00:00Z",
+        timezone="Asia/Jerusalem",
+    )
+
+    assert isinstance(response, RetryPostResponse)
+    assert response.post_id == "post/123"
+    assert requests[0].method == "POST"
+    assert requests[0].url.raw_path.endswith(b"/posts/post%2F123/retry")
+    assert json.loads(requests[0].read()) == {
+        "scheduledFor": "2026-09-01T09:00:00Z",
+        "timezone": "Asia/Jerusalem",
+    }
 
 
 def test_path_encoding_query_arrays_and_none_omission() -> None:

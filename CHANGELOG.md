@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.5
+
+- Add `posts.retry(...)` to retry only the failed platform targets of a post,
+  either immediately or at a scheduled time.
+- Add idempotency keys for safe post-creation retries.
+- Add Instagram Trial Reels and custom Reel audio names.
+- Add Instagram follower, account-insight, and demographic analytics methods.
+- Add analytics date filtering, post media metadata, and Instagram Reel watch
+  time and skip-rate metrics.
+- Expose integration profile names and analytics-permission status.
+- Distinguish monthly-plan usage from purchased-credit usage.
+
 ## 0.1.4
 
 - Add comment listing, creation, replies, hiding, unhiding, and deletion on

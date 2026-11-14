@@ -865,13 +865,14 @@ class SyncPostsResource(_SyncResource):
         publish_now: bool | None = None,
         scheduled_for: str | None = None,
         timezone: str | None = None,
+        idempotency_key: str | None = None,
         _request_options: RequestOptions | None = None,
     ) -> models.CreatePostResponse:
         """Publish a post to one or more social media platforms"""
         path = '/v1/posts/'
         query = None
         body = models.CreatePostBody.model_validate(
-            {'content': content, 'mediaItems': media_items, 'platforms': platforms, 'publishNow': publish_now, 'scheduledFor': scheduled_for, 'timezone': timezone}
+            {'content': content, 'mediaItems': media_items, 'platforms': platforms, 'publishNow': publish_now, 'scheduledFor': scheduled_for, 'timezone': timezone, 'idempotencyKey': idempotency_key}
         ).model_dump(mode="json", by_alias=True, exclude_none=True)
         return self._transport.request(
             'POST',
@@ -961,6 +962,33 @@ class SyncPostsResource(_SyncResource):
             options=_request_options,
         )
 
+    def retry(
+        self,
+        post_id: str,
+        *,
+        scheduled_for: str | None = None,
+        timezone: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.RetryPostResponse:
+        """Retry the failed platforms of a post"""
+        path_values = models.RetryPostPath.model_validate(
+            {'postId': post_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/posts/{postId}/retry'
+        path = path.replace('{postId}', quote(str(path_values['postId']), safe=''))
+        query = None
+        body = models.RetryPostBody.model_validate(
+            {'scheduledFor': scheduled_for, 'timezone': timezone}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return self._transport.request(
+            'POST',
+            path,
+            response_model=models.RetryPostResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
     @cached_property
     def scheduled(self) -> SyncPostsScheduledResource:
         return SyncPostsScheduledResource(self._transport)
@@ -984,6 +1012,79 @@ class SyncMediaResource(_SyncResource):
             'POST',
             path,
             response_model=models.CreateMediaUploadResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
+class SyncAnalyticsInstagramResource(_SyncResource):
+    def account_insights(
+        self,
+        account_id: str,
+        *,
+        metrics: str | None = None,
+        since: str | None = None,
+        until: str | None = None,
+        metric_type: models.GetInstagramAccountInsightsMetricType | str | models.GetInstagramAccountInsightsMetricType_ | str | None = None,
+        breakdown: models.GetInstagramAccountInsightsBreakdown | str | models.GetInstagramAccountInsightsBreakdown_ | str | models.GetInstagramAccountInsightsBreakdown_2 | str | models.GetInstagramAccountInsightsBreakdown_3 | str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetInstagramAccountInsightsResponse:
+        """Get Instagram account insights"""
+        path = '/v1/analytics/instagram/account-insights'
+        query = models.GetInstagramAccountInsightsQuery.model_validate(
+            {'accountId': account_id, 'metrics': metrics, 'since': since, 'until': until, 'metricType': metric_type, 'breakdown': breakdown}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetInstagramAccountInsightsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def demographics(
+        self,
+        account_id: str,
+        *,
+        metric: models.GetInstagramDemographicsMetric | str | models.GetInstagramDemographicsMetric_ | str | models.GetInstagramDemographicsMetric_2 | str | None = None,
+        breakdown: str | None = None,
+        timeframe: models.GetInstagramDemographicsTimeframe | str | models.GetInstagramDemographicsTimeframe_ | str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetInstagramDemographicsResponse:
+        """Get Instagram demographics"""
+        path = '/v1/analytics/instagram/demographics'
+        query = models.GetInstagramDemographicsQuery.model_validate(
+            {'accountId': account_id, 'metric': metric, 'breakdown': breakdown, 'timeframe': timeframe}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetInstagramDemographicsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    def follower_stats(
+        self,
+        account_id: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetInstagramFollowerStatsResponse:
+        """Get Instagram follower count"""
+        path = '/v1/analytics/instagram/follower-stats'
+        query = models.GetInstagramFollowerStatsQuery.model_validate(
+            {'accountId': account_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetInstagramFollowerStatsResponse,
             query=query,
             body=body,
             options=_request_options,
@@ -1020,6 +1121,10 @@ class SyncAnalyticsResource(_SyncResource):
             body=body,
             options=_request_options,
         )
+
+    @cached_property
+    def instagram(self) -> SyncAnalyticsInstagramResource:
+        return SyncAnalyticsInstagramResource(self._transport)
 
 
 class SyncCommentsResource(_SyncResource):
@@ -2236,13 +2341,14 @@ class AsyncPostsResource(_AsyncResource):
         publish_now: bool | None = None,
         scheduled_for: str | None = None,
         timezone: str | None = None,
+        idempotency_key: str | None = None,
         _request_options: RequestOptions | None = None,
     ) -> models.CreatePostResponse:
         """Publish a post to one or more social media platforms"""
         path = '/v1/posts/'
         query = None
         body = models.CreatePostBody.model_validate(
-            {'content': content, 'mediaItems': media_items, 'platforms': platforms, 'publishNow': publish_now, 'scheduledFor': scheduled_for, 'timezone': timezone}
+            {'content': content, 'mediaItems': media_items, 'platforms': platforms, 'publishNow': publish_now, 'scheduledFor': scheduled_for, 'timezone': timezone, 'idempotencyKey': idempotency_key}
         ).model_dump(mode="json", by_alias=True, exclude_none=True)
         return await self._transport.request(
             'POST',
@@ -2332,6 +2438,33 @@ class AsyncPostsResource(_AsyncResource):
             options=_request_options,
         )
 
+    async def retry(
+        self,
+        post_id: str,
+        *,
+        scheduled_for: str | None = None,
+        timezone: str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.RetryPostResponse:
+        """Retry the failed platforms of a post"""
+        path_values = models.RetryPostPath.model_validate(
+            {'postId': post_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        path = '/v1/posts/{postId}/retry'
+        path = path.replace('{postId}', quote(str(path_values['postId']), safe=''))
+        query = None
+        body = models.RetryPostBody.model_validate(
+            {'scheduledFor': scheduled_for, 'timezone': timezone}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        return await self._transport.request(
+            'POST',
+            path,
+            response_model=models.RetryPostResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
     @cached_property
     def scheduled(self) -> AsyncPostsScheduledResource:
         return AsyncPostsScheduledResource(self._transport)
@@ -2355,6 +2488,79 @@ class AsyncMediaResource(_AsyncResource):
             'POST',
             path,
             response_model=models.CreateMediaUploadResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+
+class AsyncAnalyticsInstagramResource(_AsyncResource):
+    async def account_insights(
+        self,
+        account_id: str,
+        *,
+        metrics: str | None = None,
+        since: str | None = None,
+        until: str | None = None,
+        metric_type: models.GetInstagramAccountInsightsMetricType | str | models.GetInstagramAccountInsightsMetricType_ | str | None = None,
+        breakdown: models.GetInstagramAccountInsightsBreakdown | str | models.GetInstagramAccountInsightsBreakdown_ | str | models.GetInstagramAccountInsightsBreakdown_2 | str | models.GetInstagramAccountInsightsBreakdown_3 | str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetInstagramAccountInsightsResponse:
+        """Get Instagram account insights"""
+        path = '/v1/analytics/instagram/account-insights'
+        query = models.GetInstagramAccountInsightsQuery.model_validate(
+            {'accountId': account_id, 'metrics': metrics, 'since': since, 'until': until, 'metricType': metric_type, 'breakdown': breakdown}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetInstagramAccountInsightsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def demographics(
+        self,
+        account_id: str,
+        *,
+        metric: models.GetInstagramDemographicsMetric | str | models.GetInstagramDemographicsMetric_ | str | models.GetInstagramDemographicsMetric_2 | str | None = None,
+        breakdown: str | None = None,
+        timeframe: models.GetInstagramDemographicsTimeframe | str | models.GetInstagramDemographicsTimeframe_ | str | None = None,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetInstagramDemographicsResponse:
+        """Get Instagram demographics"""
+        path = '/v1/analytics/instagram/demographics'
+        query = models.GetInstagramDemographicsQuery.model_validate(
+            {'accountId': account_id, 'metric': metric, 'breakdown': breakdown, 'timeframe': timeframe}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetInstagramDemographicsResponse,
+            query=query,
+            body=body,
+            options=_request_options,
+        )
+
+    async def follower_stats(
+        self,
+        account_id: str,
+        *,
+        _request_options: RequestOptions | None = None,
+    ) -> models.GetInstagramFollowerStatsResponse:
+        """Get Instagram follower count"""
+        path = '/v1/analytics/instagram/follower-stats'
+        query = models.GetInstagramFollowerStatsQuery.model_validate(
+            {'accountId': account_id}
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
+        body = None
+        return await self._transport.request(
+            'GET',
+            path,
+            response_model=models.GetInstagramFollowerStatsResponse,
             query=query,
             body=body,
             options=_request_options,
@@ -2391,6 +2597,10 @@ class AsyncAnalyticsResource(_AsyncResource):
             body=body,
             options=_request_options,
         )
+
+    @cached_property
+    def instagram(self) -> AsyncAnalyticsInstagramResource:
+        return AsyncAnalyticsInstagramResource(self._transport)
 
 
 class AsyncCommentsResource(_AsyncResource):
